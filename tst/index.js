@@ -1,6 +1,9 @@
 var Quant = require('../index')
 var t = require('assert')
 
+function closeTo(a, b, d, msg) {
+	t.ok(Math.abs(a-b) < d, msg || a + ' !=~ ' + b)
+}
 
 var q5 = Quant({
 	maximumSize: 9,
@@ -30,8 +33,7 @@ t.equal(q17.W, 6)
 
 t.equal(q5.quantile(0), 0)
 t.equal(q17.quantile(0.5), 2.5)
-console.log(q5.array)
-//t.equal(q5.quantile(1), 5)
+t.equal(q5.quantile(1), 5)
 
 q5.insert([6,7,8,9])
 q17.insert([6,7,8,9])
@@ -41,10 +43,10 @@ t.equal(q17.N, 10)
 t.equal(q5.W, 10)
 t.equal(q17.W, 10)
 
-//t.equal(q5.quantile(0), 0)
-//t.equal(q5.quantile(0.5), 4.5)
-//t.equal(q17.quantile(0.5), 4.5)
-//t.equal(q5.quantile(1), 9)
+t.equal(q5.quantile(0), 0)
+t.equal(q5.quantile(0.5), 4.5)
+t.equal(q17.quantile(0.5), 4.5)
+t.equal(q5.quantile(1), 9)
 
 q5.insert([14,13,12,11,10])
 q17.insert([14,13,12,11,10])
@@ -54,61 +56,46 @@ t.equal(q17.N, 15)
 t.equal(q5.W, 15)
 t.equal(q17.W, 15)
 
-//t.equal(q5.quantile(0.5), 7)
-//t.equal(q17.quantile(0.5), 7)
+t.equal(q5.quantile(0.5), 7)
+t.equal(q17.quantile(0.5), 7)
 
-var q7 = Quant({
-	maximumSize: 13,
-	nominalSize: 7
+var q23 = Quant({
+	maximumSize: 30,
+	nominalSize: 23
 })
-var q13b13 = Quant({
-	maximumSize: 13,
-	nominalSize: 13
-})
-
-var q13b17 = Quant({
-	maximumSize: 17,
-	nominalSize: 13
-})
-var q13b21 = Quant({
-	maximumSize: 21,
-	nominalSize: 13
+var q25 = Quant({
+	maximumSize: 35,
+	nominalSize: 25
 })
 
-var q11 = Quant({
-	maximumSize: 27,
-	nominalSize: 13
-})
-
-for (var i=0, rnd=[]; i<5000; ++i) {
+var N = 5001
+for (var i=0, rnd=[]; i<N; ++i) {
 	var rand = Math.random()
-	//q17.insert(rand)
 	rnd.push(rand)
-	q13b21.insert(rand)
-	q13b17.insert(rand)
-	q13b13.insert(rand)
+	q23.insert(rand)
 }
-q5.insert(rnd)
-q7.insert(rnd)
-q13b21.compile().compile().compile()
-q13b17.compile().compile().compile()
-q13b13.compile().compile().compile()
-q11.insert(rnd)
+q25.insert(rnd)
 
-//console.log(q5.N)
-//console.log(q5.array.map(function(c) {return c[0].toFixed(2) + '-'+ c[1]}))
-//console.log(q7.N)
-//console.log(q7.array.map(function(c) {return c[0].toFixed(2) + '-'+ c[1]}))
+rnd.sort(function(a,b) { return a-b })
+var max = rnd[N-1]
+var Q90 = rnd[Math.round((N-1)*0.9)]
+var Q75 = rnd[Math.round((N-1)*0.75)]
+var Q50 = rnd[Math.round((N-1)*0.5)]
+var Q25 = rnd[Math.round((N-1)*0.25)]
+var Q10 = rnd[Math.round((N-1)*0.10)]
+var min = rnd[0]
 
-console.log(q13b21.N, q13b21.array.length)
-console.log(q13b21.array.map(function(c) {return c[0].toFixed(2) + '-'+ c[1]}))
+closeTo(q23.quantile(0.5), Q50, 5e-3)
+closeTo(q25.quantile(0.25), Q25, 5e-3)
 
-console.log(q13b17.N, q13b17.array.length)
-console.log(q13b17.array.map(function(c) {return c[0].toFixed(2) + '-'+ c[1]}))
+closeTo(q23.quantile(0.75), Q75, 5e-3)
+closeTo(q25.quantile(0.10), Q10, 5e-3)
+closeTo(q25.quantile(0.90), Q90, 5e-3)
 
-console.log(q13b13.N, q13b13.array.length)
-console.log(q13b13.array.map(function(c) {return c[0].toFixed(2) + '-'+ c[1]}))
+t.equal(q23.max, max)
+t.equal(q25.min, min)
 
+console.log('===Test Complete===')
 //console.log(q11.N)
 //console.log(q11.array.map(function(c) {return c[0].toFixed(2) + '-'+ c[1]}))
 //console.log(q17.array.map(function(c) {return c[0].toFixed(2) + '-'+ c[1]}))

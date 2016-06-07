@@ -24,11 +24,10 @@ function upperBound(arr, val, start) {
 }
 
 function i2w2(N, W, i) {
-	var r = 2*i/(N-2)-1,
-			A = 1 //1/(W/N-1)*20 // *4 since too steep otherwise
+	var r = 2*i/(N-2)-1
 	return i === 0 ? 1
 		: i === N-1 ? W
-		: Math.floor((W-2)/2 * (r*Math.sqrt(A+1) / Math.sqrt(A+r*r) + 1) + 1) //floor instead of round to compensate 0-fill bias
+		: Math.ceil((W-2)/2 * (Math.SQRT2 * r / Math.sqrt(1+r*r) + 1) + 1)
 }
 
 function Quant(options) {
@@ -43,6 +42,14 @@ function Quant(options) {
 		get array() { return arr },
 		get N() { return Math.min(N,arr.length) },
 		get W() { return W },
+		get min() {
+			if (!isCompiled) compile()
+			return arr[0][0]
+		},
+		get max() {
+			if (!isCompiled) compile()
+			return arr[arr.length-1][0]
+		},
 		reset: function() {
 			arr.length=0
 			W=0
@@ -51,8 +58,7 @@ function Quant(options) {
 		insert: insert,
 		compile: compile,
 		quantile: quantile,
-		quantiles: quantiles,
-		maxima: maxima
+		quantiles: quantiles
 	}
 
 	function insert(v) {
@@ -61,7 +67,7 @@ function Quant(options) {
 		W += v.length || 1
 		isCompiled = false
 		if (arr.length > maxN) compile()
-		return this
+		return ctx
 	}
 
 	function miniCompile() {
@@ -82,7 +88,7 @@ function Quant(options) {
 			var targetWeight = i2w2(N, W, i)
 			sumWi += arr[i][1]
 			if (iNext <= i) iNext = i+1
-			while(iNext < arr.length && (sumWi < targetWeight || arr[i][1] === 0)) { //TODO bad condition favors left bias
+			while(iNext < arr.length && ((sumWi + arr[iNext][1]/2 < targetWeight) || arr[i][1] === 0)) {
 				sumWi += arr[iNext][1]
 				merge(arr[i], arr[iNext])
 				++iNext
@@ -92,11 +98,6 @@ function Quant(options) {
 		arr.length = N
 		isCompiled = true
 		return ctx
-	}
-
-	function maxima() {
-		if (arr.length > N) compile()
-		return [arr[0][0], arr[N-1][0]]
 	}
 
 	function quantile(q) {

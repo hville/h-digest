@@ -1,145 +1,124 @@
-var List = require('./list')
-
-function Ctrd(v,w) {
-	this.v = v
-	this.w = w
-}
-Ctrd.prototype.merge = function(val) {
-	if (val instanceof Ctrd) {
-		this.v = (this.v * this.w + val.v * val.w) / (this.w + val.w)
-		this.w += val.w
-	}
-	else {
-		this.v = (this.v * this.w + val.v) / ++this.w
-	}
-	return this
-}
-Ctrd.prototype.copy = function() {
-	return new Ctrd(this.v, this.w)
+module.exports = function(options) {
+	return new Quant({
+		A: options && options.A || 9,
+		N: options && options.N || 25
+	})
 }
 
-function concatCtrd(args) {
-	var vals = []
-	for (var i=0; i<args.length; ++i) {
-		var val = args[i]
-		if (val instanceof Ctrd) vals.push(val)
-		else if (Array.isArray(val)) Array.prototype.push.apply(vals, concatCtrd(val))
-		else vals.push(new Ctrd(val, 1))
+function merge(tgt, src) {
+	if (tgt === src) return tgt
+	if (Array.isArray(src)) {
+		tgt[0] = (tgt[0] * tgt[1] + src[0] * src[1]) / (tgt[1] + src[1])
+		tgt[1] += src[1]
+		src[1] = 0
 	}
-	return vals
+	else tgt[0] = (tgt[0] * tgt[1] + src) / ++tgt[1]
+	if (!tgt[1]) throw Error(['noWeight'].join(','))
+	return tgt
 }
 
-function compareAsc(a,b) { return a.v - b.v }
-function compareDsc(a,b) { return b.v - a.v }
+function compareAsc(a,b) { return a[0] - b[0] }
 
-function Quant(maxN) {
-	var sizeW = 0
-	//var sizeN = 0
-	if (maxN === undefined) maxN = 10
-	var list = new List(compareAsc)
-	//console.log(list)
-	this.size = {
-		get W () { return sizeW },
-		get N () { return list.size },
-		get max () { return maxN }
+//max bucket index (n) for a given sum of weights (w)
+// y(w/W) = n/N = (B(2w/W-1)^A + S(2w/W-1) + 1)/2
+// r = 2w/W - 1
+// y(r) = (Br^A + Sr + 1)/2
+// y(r=1) = 1 = B/2 + S/2 + 1/2 --> S = 1 - B -->	0<B<1
+// dy/dr =	(ABr^(A-1) + 1 - B) / 2
+// dy/dr|1 = (AB + 1 - B) / 2 <= 1/(N/2-1) --> B <= (2/(N/2-1) - 1)/(A-1)
+// eg: A = 11: B = B <= (2/(N/10 - 1/10
+// B = (1-S)*2^(A-1) --> S = 1-B/2^(A-1)
+// dy/dr = (ABr^(A-1) + 1-B/2^(A-1))/2
+// y = n/N = ([ (1-S)*(2q-1)^(A-1) + S ](2q-1) + 1) / 2
+function w2n(W, N, w, S, A) {
+	// dy / dx = [ A * (1-S) * (2x-1)^(A-1) ] + S
+	// dy / dx (0) = A - AS + S = A(1-S) + S = A + S(1-A) //if A is odd
+	// dy / dx (1) = A - AS + S = A(1-S) + S = A + S(1-A)
+	// dy / dx	(1/2) = S
+	// *** dq/dw < 1/N; dn/dw < 1; dq/dr < 1/2N; 2dq/dr = 1 - 1/N/(A+1) <=	S
+	var r = 2 * w/W - 1
+
+	return w === W ? N-1 // else <= N-2
+		:	w === 0 ? 0 // else >= 1
+		: Math.ceil((N-2) * (((1-S) * Math.pow(r, A-1) + S) * r + 1) / 2)
+}
+
+function w2n2(W, N, w) {
+	var r = (2 * w/W - 1), //*.84,
+			q = (r < 0 ? Math.sqrt(1 + r)/2 : 1-Math.sqrt(1 - r)/2)// /0.6-0.2
+	return w === W ? N-1 // else r <= +1, q <= 1, n <= N-2
+		:	w === 0 ? 0 // else r >= -1, q >= 0, n >= 1
+		: Math.round((N-2) * q)
+}
+
+
+function Quant(options) {
+	var N = options.N,
+			S = (options.A - 1/(N-2)) / (options.A - 1),
+			W = 0,
+			arr = []
+
+	var ctx = {
+		get array() { return arr },
+		get N() { return N },
+		get W() { return W },
+		insert: insert,
+		compile: compile,
+		quantiles: quantiles
 	}
-	this.list = list
 
-	function maxWeight(wc) {
-		var qi = wc/sizeW
-		var maxW = 4 * sizeW / maxN * Math.sqrt(qi * (1-qi))
-		return maxW
+	function insert(v) {
+		if (Array.isArray(v)) for (var i=0; i<v.length; ++i) arr.push([v[i], 1])
+		else arr.push([v, 1])
+		W += v.length || 1
+		if (arr.length > N) compile()
 	}
 
-	function cumWeight(qi) {
-		var r = qi - 0.5
-		return (80*r*r*r*r*r*r - 2) * r
-	}
+	function compile() {
+		var wi = 0,
+				ni = 1, //next target position
+				ei = 1 //next empty position
+		arr.sort(compareAsc)
+		for (var j=0; j<arr.length; ++j) {
+			wi += arr[j][1]
+			if (wi>W) throw Error(['wi>W !!!',W, wi, j].join(','))
+			ni = w2n2(W, N, wi, S, options.A) //target position
+			if (!ni) throw Error([W, N, wi, ni].join(','))
+			if (ni > ei) ni = ei
+			if (ni === j) continue
+			if (!arr[ni][0]) throw Error(['noValue', ni].join(','))
 
-	this.insert = function(vals) {
-		var args = [vals]
-		for (var i=1; i<arguments.length; ++i) args[i] = arguments[i]
-		var vs = concatCtrd(args) //.sort(compareDsc)
-
-		//VALIDATION
-		var newW = list.array.reduce(function(r, v) { return r+v.w }, 0)
-		if (sizeW !== newW) throw Error('Wrong Weight. was '+sizeW+' now '+newW)
-
-		//console.log('NEW VALUES:', vs)
-		vs.forEach(function(v) { sizeW += v.w	})
-
-
-
-		//cheap and nasty temp algorithm
-		var allData = list.array.concat(vs).sort(compareAsc)
-		var wi = 0
-		var tempW = 0
-		//if (allData.length < 4) return list.array = allData //no merging of ends...
-		//console.log('START',allData)
-		list.array = allData.reduce(function(res, crd, idx, all) {
-			wi += crd.w
-
-			//leave the end nodes alone
-			if (idx < 2 || idx === all.length-1) return res.concat(crd)
-
-			var last = res[res.length-1]
-			if (crd.v === last.v) res[res.length-1] = last.copy().merge(crd)//, console.log('merge same value')
-			else if (maxWeight(wi - 3*crd.w/2) > (last.w + crd.w)) res[res.length-1] = last.copy().merge(crd)//, console.log('merge with previous')
-			else res.push(crd)
-
-			var temp = res.reduce(function(r, v) { return r+v.w }, 0)
-			if (temp !== wi) console.log('wi: ', wi, 'res:', temp, 'itm:', crd, 'idx:', idx, 'all:', all)
-			//console.log(wi, idx, res.length)
-			return res
-		}, [])
-		//VALIDATION
-		newW = list.array.reduce(function(r, v) { return r+v.w }, 0)
-		if (sizeW !== newW) {
-			console.log(list.array)
-			throw Error('Wrong Weight. was '+sizeW+' then '+wi+' now '+newW)
+			merge(arr[ni], arr[j])
+			if (!arr[ni][1]) throw Error(['noWeight',ni].join(','))
+			if (!arr[ni][0]) throw Error([ni].join(','))
+			//if (!arr[ei][1]) throw Error(['ei inc while empty',ni].join(','))
+			if (arr[ei][1]) ei++ //only increment when full
 		}
-		//console.log('END',allData)
+		arr.length = N
+		return this
 	}
+
+	function quantiles(qs) {
+		if (arr.length > N) this.compile()
+		var Wi = 0
+		var Wt = W
+		//ar Ws = qs.map(function(q) { return W*q })
+		//console.log (Ws)
+		var resQs = []
+		var i = 0
+		while (resQs.length < qs.length) {
+			var cur = arr[i]
+			var nxt = arr[++i]
+			Wi += cur[1]
+			if (!nxt) resQs.push(cur[0])
+			else if (Wi+nxt[1]/2 >= Wt*qs[resQs.length]) resQs.push(
+				cur[0] + 2 * (nxt[0]-cur[0]) / (nxt[1]+cur[1]) * (Wt*qs[resQs.length] - Wi + cur[1]/2)
+			)
+		}
+		resQs.unshift(arr[0][0])
+		resQs.push(arr[N-1][0])
+		return resQs
+	}
+
+	return ctx
 }
-
-//TODO don't modify source arrays
-var tst1 = [8,9,0,3,2,1,4,5,6,7]
-var tst2 = [11, 12, 13, 19, 17, 18, 16, 15, 14, 10]
-var tst3 = new Ctrd(5.3, 10)
-var tst4 = [new Ctrd(8.3, 10)]
-var tst5 = [3.5, new Ctrd(6.3, 8), 12.5]
-var lots = tst1.concat(tst2, tst3, tst4, tst5)
-var q = new Quant(25)
-q.insert(tst1)
-console.log('RESULT N10, W10: ',q.size.N, q.size.W)
-q.insert(tst2)
-console.log('RESULT N20, W20: ',q.size.N, q.size.W)
-q.insert(tst3)
-console.log('RESULT N21, W30: ',q.size.N, q.size.W)
-q.insert(tst4)
-console.log('RESULT N22, W40: ',q.size.N, q.size.W)
-q.insert(tst5)
-console.log('RESULT N25, W50: ',q.size.N, q.size.W)
-q.insert(tst1)
-console.log('RESULT N35, W60: ',q.size.N, q.size.W)
-q.insert(tst2)
-console.log('RESULT N45, W70: ',q.size.N, q.size.W)
-q.insert(tst3)
-console.log('RESULT N46, W80: ',q.size.N, q.size.W)
-q.insert(tst4)
-console.log('RESULT N47, W90: ',q.size.N, q.size.W)
-q.insert(tst5)
-console.log('RESULT N50, W100: ',q.size.N, q.size.W)
-q.insert(lots)
-console.log('RESULT N75, W150: ',q.size.N, q.size.W)
-q.insert(lots)
-console.log('RESULT N100, W200: ',q.size.N, q.size.W)
-
-console.log(q.list.array.map(function(c){ return c.w.toFixed(1) }).join(', '))
-
-for (var z=0, rnd=[]; z<400; ++z) rnd.push(Math.random()*30)
-q.insert(rnd)
-console.log('RESULT N500, W600: ',q.size.N, q.size.W)
-q.insert(rnd)
-console.log('RESULT N900, W1000: ',q.size.N, q.size.W)
-

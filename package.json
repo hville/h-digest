@@ -1,26 +1,26 @@
 {
-  "name": "@private/mini-quant",
-  "version": "0.1.0",
-  "description": "small minimal quantiles estimator",
-  "keywords": [
-    "quantiles",
-    "median",
-    "t-digest",
-    "q-digest"
-  ],
-  "author": "Hugo Villeneuve",
-  "main": "./index.js",
-  "dependencies": {},
-  "devDependencies": {
-    "tdigest": "^0.1.1"
-  },
-  "scripts": {
-    "test": "node ./tst/index",
-    "prepublish": "npm test",
-    "min": "uglifyjs ./src/index.js -c unsafe,drop_console --screw-ie8 --preamble //hugov@runbox.com -m --wrap miniQuant -o ./bld/index.min.js"
-  },
-  "license": "UNLICENSED",
-  "publishConfig": {
-    "registry": "http://localhost:4873/"
-  }
+	"name": "@private/mini-quant",
+	"version": "0.1.1",
+	"description": "small minimal quantiles estimator",
+	"keywords": [
+		"quantiles",
+		"median",
+		"t-digest",
+		"q-digest"
+	],
+	"author": "Hugo Villeneuve",
+	"main": "./index.js",
+	"dependencies": {},
+	"devDependencies": {
+		"tdigest": "^0.1.1"
+	},
+	"scripts": {
+		"test": "node ./tst/index",
+		"prepublish": "npm test",
+		"min": "uglifyjs ./src/index.js -c unsafe,drop_console --screw-ie8 --preamble //hugov@runbox.com -m --wrap miniQuant -o ./bld/index.min.js"
+	},
+	"license": "UNLICENSED",
+	"publishConfig": {
+		"registry": "http://localhost:4873/"
+	}
 }

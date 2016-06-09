@@ -58,14 +58,27 @@ function miniCompile(ctx){
 	var arr = ctx.data.arr,
 			nvs = ctx.data.nvs,
 			wt = 0
-
 	while(nvs.length) arr.push([nvs.pop(), 1])
 	arr.sort(function(a,b) { return a[0] - b[0]})
-	ctx.data.weights = arr.map(function(itm) {
-		return wt += itm[1]
-	})
-
+	ctx.data.weights = arr.map(function(itm) { return wt += itm[1] })
 	return ctx
+}
+
+function merge(ctx, item, tgtWgt) {
+	var target = ctx.data.arr,
+			data = ctx.data,
+			idx = data.arr.length-1,
+			len = ctx.options.nominalSize
+	if (data.weights[idx] < tgtWgt) { // join to last
+		target[idx][0] = (target[idx][0] * target[idx][1] + item[0] * item[1]) / (target[idx][1] + item[1])
+		target[idx][1] += item[1]
+		data.weights[idx] += item[1]
+	}	else { // push after last
+		target.push(item)
+		tgtWgt = i2w2(len, data.sampleQuantity, target.length-1)
+		data.weights[idx+1] = data.weights[idx] + item[1]
+	}
+	return tgtWgt
 }
 
 function compile() {
@@ -73,37 +86,18 @@ function compile() {
 			old = data.arr.reverse(),
 			nvs = data.nvs,
 			len = this.options.nominalSize,
-			arr = [[0,0]],
-			targetWeight = i2w2(len, data.sampleQuantity, arr.length-1)
-
+			targetWeight = i2w2(len, data.sampleQuantity, 0)
 	if (old.length + nvs.length < len) return miniCompile(this)
 
+	data.arr = [[0,0]]
 	nvs.sort(compareDsc)
 	data.weights = [0]
 
-	function merge(target, item, tgtWgt) {
-		var idx = arr.length-1
-		if (data.weights[idx] < tgtWgt) { // join to last
-			target[idx][0] = (target[idx][0] * target[idx][1] + item[0] * item[1]) / (target[idx][1] + item[1])
-			target[idx][1] += item[1]
-			data.weights[idx] += item[1]
-		}	else { // push after last
-			target.push(item)
-			tgtWgt = i2w2(len, data.sampleQuantity, arr.length-1)
-			data.weights[idx+1] = data.weights[idx] + item[1]
-		}
-		return tgtWgt
-	}
-
 	while (old.length + nvs.length) {
-		if (!old.length || nvs[nvs.length-1] < old[old.length-1][0] ) {
-			targetWeight = merge(arr, [nvs.pop(), 1], targetWeight)
-		}	else {
-			targetWeight = merge(arr, old.pop(), targetWeight)
-		}
+		targetWeight = (!old.length || nvs[nvs.length-1] < old[old.length-1][0])
+			? merge(this, [nvs.pop(), 1], targetWeight)
+			: merge(this, old.pop(), targetWeight)
 	}
-
-	data.arr = arr
 	data.isCompiled = true
 	return this
 }
@@ -117,13 +111,11 @@ function quantile(q) {
 	var Ws = this.data.weights,
 			h = upperBound(Ws, q*(this.data.sampleQuantity+1) -1),
 			arr = this.data.arr
-
 	if (h === 0) return arr[0][0]
 	if (h === undefined) return arr[arr.length-1][0]
 
 	var low = arr[h-1],
 			top = arr[h]
-
 	return low[0] + (top[0]-low[0]) * (this.data.sampleQuantity*q - Ws[h-1] + low[1]/2) * 2 /(top[1]+low[1])
 }
 

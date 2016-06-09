@@ -9,17 +9,17 @@ for (var i=0, rnd=[]; i<N; ++i) {
 }
 
 var qt0 = Quant({
-	maximumSize: 72,
-	nominalSize: 36
+	maximumSize: 35,
+	nominalSize: 21
 })
 
 var qt1 = Quant({
-	maximumSize: 72,
-	nominalSize: 36
+	maximumSize: 35,
+	nominalSize: 21
 })
 
-var td0 = new tdigest.TDigest(0.5, 27, 1.1) //this.size() > this.K / this.delta
-var td1 = new tdigest.TDigest(0.5, 27, 1.1)
+var td0 = new tdigest.TDigest(0.8, 24, 1.1) //this.size() > this.K / this.delta
+var td1 = new tdigest.TDigest(0.8, 24, 1.1)
 
 function time(fcn, val) {
 	var start = process.hrtime()
@@ -47,16 +47,32 @@ console.log('tdigest - allAtOnce: ', time(allAtOnce(td1, 'push'), rnd).toFixed(0
 console.log('quant - oneByone: ', time(oneByOne(qt0, 'push'), rnd).toFixed(0), qt0.size)
 console.log('quant - allAtOnce: ', time(allAtOnce(qt1, 'push'), rnd).toFixed(0), qt1.size)
 
-function err(val, ref) { return (100*(val-ref)/ref).toFixed(1) }
+function err(val, ref) { return (val-ref)/ref }
 
 console.log('errors')
 rnd.sort(function(a,b) { return a-b })
-var Q02 = rnd[Math.round((N-1)*0.02)]
-var Q10 = rnd[Math.round((N-1)*0.1)]
-var Q25 = rnd[Math.round((N-1)*0.25)]
-//var Q50 = rnd[Math.round((N-1)*0.5)]
 
-console.log('td0', err(td0.percentile(0.02), Q02), err(td0.percentile(0.10), Q10), err(td0.percentile(0.25), Q25))
-console.log('td1', err(td1.percentile(0.02), Q02), err(td1.percentile(0.10), Q10), err(td1.percentile(0.25), Q25))
-console.log('qt0', err(qt0.quantile(0.02), Q02), err(qt0.quantile(0.10), Q10), err(qt0.quantile(0.25), Q25))
-console.log('qt1', err(qt1.quantile(0.02), Q02), err(qt1.quantile(0.10), Q10), err(qt1.quantile(0.25), Q25))
+function actualQuantile(q) {
+	return rnd[Math.round((N-1)*q)]
+}
+
+var quantiles = [0.005, 0.02, .1, .25, .5, .75, .75, .98, .995]
+var actual = quantiles.map(actualQuantile)
+
+function qtls(obj, prop, qs, ref) {
+	var sumsq = 0
+	var dif = qs.map(function(q, k) {
+		var e = err(obj[prop](q), ref[k])
+		sumsq += e*e
+		return e
+	})
+	dif.push(Math.sqrt(sumsq/qs.length))
+	return dif.map(function(v) { return (v*100).toFixed(2) }).join(', ')
+}
+
+console.log('td0', qtls(td0, 'percentile', quantiles, actual))
+console.log('td1', qtls(td1, 'percentile', quantiles, actual))
+console.log('qt0', qtls(qt0, 'quantile', quantiles, actual))
+console.log('qt0', qtls(qt0, 'quantile', quantiles, actual))
+
+console.log(qt0.data.arr)

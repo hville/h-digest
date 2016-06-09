@@ -1,6 +1,6 @@
 /* eslint no-console:0 */
 
-var Quant = require('../index-split')
+var Quant = require('../index')
 var t = require('assert')
 
 function closeTo(a, b, d, msg) {
@@ -11,8 +11,6 @@ var q5 = Quant({
 	maximumSize: 9,
 	nominalSize: 5
 })
-//console.log('proto', Object.keys(q5.prototype))
-//q5.dummy()
 
 var q17 = Quant()
 

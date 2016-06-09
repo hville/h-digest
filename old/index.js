@@ -5,11 +5,19 @@ module.exports = function(options) {
 	})
 }
 
-function last(arr) {
-	return arr[arr.length-1]
+function merge(tgt, src) {
+	if (tgt === src) return tgt
+	if (Array.isArray(src)) {
+		if (!src[1]) return tgt
+		tgt[0] = (tgt[0] * tgt[1] + src[0] * src[1]) / (tgt[1] + src[1])
+		tgt[1] += src[1]
+		src[1] = 0
+	}
+	else tgt[0] = (tgt[0] * tgt[1] + src) / ++tgt[1]
+	return tgt
 }
 
-function compareDsc(a,b) { return b - a }
+function compareAsc(a,b) { return a[0] - b[0] }
 
 function upperBound(arr, val, start) {
 	for (var i = start || 0; i<arr.length; ++i) if (arr[i] > val) return i
@@ -26,7 +34,6 @@ function Quant(options) {
 	this.options = options
 	this.data = {
 		arr: [],
-		nvs: [],
 		sampleQuantity: 0,
 		isCompiled: true,
 		weights: []
@@ -34,7 +41,7 @@ function Quant(options) {
 }
 
 Quant.prototype = {
-	get size() { return Math.min(this.options.nominalSize, this.data.arr.length + this.data.nvs.length) },
+	get size() { return Math.min(this.options.nominalSize, this.data.arr.length) },
 	get N() { return this.data.sampleQuantity },
 	get min() {
 		if (!this.data.isCompiled) this.compile()
@@ -52,77 +59,49 @@ Quant.prototype = {
 }
 
 function reset() {
+	//this.data.size = this.options.nominalSize
 	this.data.arr.length = 0
 	this.data.sampleQuantity = 0
 	this.data.isCompiled = true
 	this.data.weights.length = 0
 }
 
-function miniCompile(ctx){
+function miniCompile(ctx) {
 	var arr = ctx.data.arr,
-			nvs = ctx.data.nvs,
-			wt = 0
-
-	while(nvs.length) arr.push([nvs.pop(), 1])
-	arr.sort(function(a,b) { return a[0] - b[0]})
-	ctx.data.weights = arr.map(function(itm) {
-		return wt += itm[1]
-	})
-
+			Ws = ctx.data.weights
+	Ws[0] = arr[0][1]
+	for (var i=1; i<arr.length; ++i) Ws[i] = Ws[i-1] + arr[i][1]
+	if (ctx.data.weights[arr.length-1] !== ctx.data.sampleQuantity) {
+		throw Error('CompileError: weighting mismatch '+ctx.data.weights[arr.length-1]+'!=='+ctx.data.sampleQuantity )
+	}
+	ctx.data.isCompiled = true
 	return ctx
 }
 
 function compile() {
 	var sumWi = 0,
-			idx = 0,
-			old = this.data.arr.reverse(),
-			nvs = this.data.nvs,
-			len = this.options.nominalSize,
-			arr = [],
-			targetWeight = i2w2(len, this.data.sampleQuantity, idx),
-			nextItm,
-			nextVal
+			iNext = 0,
+			arr = this.data.arr,
+			len = this.options.nominalSize
 
-	if (old.length + nvs.length < len) return miniCompile(this)
+	arr.sort(compareAsc)
+	if (arr.length <= this.options.nominalSize) return miniCompile(this)
 
-	nvs.sort(compareDsc)
-
-	arr[0] = [0,0]
-	while (old.length + nvs.length) {
-		if (!old.length || last(nvs) < last(old)[0] ) {
-			nextVal = nvs.pop()
-			if (sumWi + 1/2 < targetWeight) {
-				arr[idx][0] = (arr[idx][0] * arr[idx][1] + nextVal) / (arr[idx][1] + 1)
-				arr[idx][1] += 1
-			} else {
-				this.data.weights[idx] = sumWi
-				idx = arr.push([nextVal, 1]) - 1
-				targetWeight = i2w2(len, this.data.sampleQuantity, idx)
-			}
-			sumWi += 1
-		}	else {
-			nextItm = old.pop()
-			if (sumWi + nextItm[1]/2 < targetWeight) {
-				arr[idx][0] = (arr[idx][0] * arr[idx][1] + nextItm[0] * nextItm[1]) / (arr[idx][1] + nextItm[1])
-				arr[idx][1] += nextItm[1]
-			} else {
-				this.data.weights[idx] = sumWi
-				idx = arr.push(nextItm) - 1
-				targetWeight = i2w2(len, this.data.sampleQuantity, idx)
-			}
-			sumWi += nextItm[1]
+	for (var i=0; i<len; ++i) {
+		var targetWeight = i2w2(len, this.data.sampleQuantity, i)
+		sumWi += arr[i][1]
+		if (iNext <= i) iNext = i+1
+		while(iNext < arr.length && ((sumWi + arr[iNext][1]/2 < targetWeight) || arr[i][1] === 0)) {
+			sumWi += arr[iNext][1]
+			merge(arr[i], arr[iNext])
+			++iNext
 		}
+		this.data.weights[i] = sumWi
 	}
-	if (idx !== len-1) {
-		throw('CompileError: length mismatch '+(idx+1)+'!=='+len+'!=='+this.options.nominalSize)
+	if (this.data.weights[len-1] !== this.data.sampleQuantity) {
+		throw Error('CompileError: weighting mismatch '+this.data.weights[len-1]+'!=='+this.data.sampleQuantity )
 	}
-	this.data.weights[idx] = sumWi
-	if (this.data.weights[idx] !== this.data.sampleQuantity) {
-		var msg = 'CompileError: weighting mismatch '+this.data.weights[idx]+'!=='+this.data.sampleQuantity
-		throw Error([msg, sumWi, idx, len-1].join(', '))
-	}
-
-	this.data.arr = arr
+	arr.length = len
 	this.data.isCompiled = true
 	return this
 }
@@ -153,9 +132,9 @@ function quantiles(qs) {
 
 function push(v) {
 	if (Array.isArray(v)) for (var i=0; i<v.length; ++i) {
-		this.data.nvs.push(v[i])
+		this.data.arr.push([v[i], 1])
 	}
-	else this.data.nvs.push(v)
+	else this.data.arr.push([v, 1])
 	this.data.sampleQuantity += v.length || 1
 	this.data.isCompiled = false
 	if (this.data.arr.length > this.options.maximumSize) this.compile()

@@ -1,6 +1,6 @@
 /* eslint no-console:0 */
 
-var Quant = require('../index')
+var Quant = require('../index-split')
 var t = require('assert')
 
 function closeTo(a, b, d, msg) {
@@ -21,16 +21,16 @@ t.equal(q17.N, 0)
 t.equal(q5.size, 0)
 t.equal(q17.size, 0)
 
-q5.insert(1)
-q17.insert(1)
+q5.push(1)
+q17.push(1)
 
 t.equal(q5.N, 1)
 t.equal(q17.N, 1)
 t.equal(q5.size, 1)
 t.equal(q17.size, 1)
 
-q5.insert([5,4,3,2,0])
-q17.insert([5,4,3,2,0])
+q5.push([5,4,3,2,0])
+q17.push([5,4,3,2,0])
 
 t.equal(q5.size, 5)
 t.equal(q5.N, 6)
@@ -40,8 +40,8 @@ t.equal(q5.quantile(0), 0)
 t.equal(q17.quantile(0.5), 2.5)
 t.equal(q5.quantile(1), 5)
 
-q5.insert([6,7,8,9])
-q17.insert([6,7,8,9])
+q5.push([6,7,8,9])
+q17.push([6,7,8,9])
 
 t.equal(q5.size, 5)
 t.equal(q5.N, 10)
@@ -53,8 +53,8 @@ t.equal(q5.quantile(0.5), 4.5)
 t.equal(q17.quantile(0.5), 4.5)
 t.equal(q5.quantile(1), 9)
 
-q5.insert([14,13,12,11,10])
-q17.insert([14,13,12,11,10])
+q5.push([14,13,12,11,10])
+q17.push([14,13,12,11,10])
 
 t.equal(q5.size, 5)
 t.equal(q17.N, 15)
@@ -77,9 +77,9 @@ var N = 5001
 for (var i=0, rnd=[]; i<N; ++i) {
 	var rand = Math.random()
 	rnd.push(rand)
-	q23.insert(rand)
+	q23.push(rand)
 }
-q25.insert(rnd)
+q25.push(rnd)
 
 rnd.sort(function(a,b) { return a-b })
 var max = rnd[N-1]

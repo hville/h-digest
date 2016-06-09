@@ -2,7 +2,7 @@
 var Quant = require('../index')
 var tdigest = require('tdigest')
 
-var N = 100001
+var N = 50001
 for (var i=0, rnd=[]; i<N; ++i) {
 	var rand = Math.random() * 100
 	rnd.push(rand)
@@ -44,8 +44,8 @@ function allAtOnce(obj, mtd) {
 console.log('pushTime')
 console.log('tdigest - oneByone: ', time(oneByOne(td0, 'push'), rnd).toFixed(0), td0.size())
 console.log('tdigest - allAtOnce: ', time(allAtOnce(td1, 'push'), rnd).toFixed(0), td1.size())
-console.log('quant - oneByone: ', time(oneByOne(qt0, 'insert'), rnd).toFixed(0), qt0.size)
-console.log('quant - allAtOnce: ', time(allAtOnce(qt1, 'insert'), rnd).toFixed(0), qt1.size)
+console.log('quant - oneByone: ', time(oneByOne(qt0, 'push'), rnd).toFixed(0), qt0.size)
+console.log('quant - allAtOnce: ', time(allAtOnce(qt1, 'push'), rnd).toFixed(0), qt1.size)
 
 function err(val, ref) { return (100*(val-ref)/ref).toFixed(1) }
 

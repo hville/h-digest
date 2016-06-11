@@ -2,9 +2,9 @@
 var Quant = require('../index')
 var tdigest = require('tdigest')
 
-var N = 50001
+var N = 10001
 for (var i=0, rnd=[]; i<N; ++i) {
-	var rand = Math.random() * 100
+	var rand = (Math.random()-0.5)*Math.random() * 100
 	rnd.push(rand)
 }
 
@@ -56,7 +56,7 @@ function actualQuantile(q) {
 	return rnd[Math.round((N-1)*q)]
 }
 
-var quantiles = [0.005, 0.02, .1, .25, .5, .75, .75, .98, .995]
+var quantiles = [0.005, 0.02, .1, .25, .5, .75, .98, .995]
 var actual = quantiles.map(actualQuantile)
 
 function qtls(obj, prop, qs, ref) {

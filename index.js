@@ -15,7 +15,7 @@ function i2w2(N, W, i) {
 	var r = 2*i/(N-2)-1
 	return i === 0 ? 1
 		: i === N-1 ? W
-		: Math.ceil((W-2)/2 * (Math.SQRT2 * r / Math.sqrt(1+r*r) + 1) + 1)
+		: (W-2)/2 * (Math.SQRT2 * r / Math.sqrt(1+r*r) + 1) + 1
 }
 
 function Quant(options) {
@@ -106,22 +106,22 @@ function quantile(q) {
 	if (!this.data.isCompiled) this.compile()
 	if (q>1) q *= 100
 
-	//TODO small error bias - greater error on lower side
-	//https://en.wikipedia.org/wiki/Quantile, R-6, adjusted (empirically) for 0-based weighted items
 	var Ws = this.data.weights,
-			h = upperBound(Ws, q*(this.data.sampleQuantity+1) -1),
+			h = q*(this.data.sampleQuantity+1),
+			j = upperBound(Ws, h),
 			arr = this.data.arr
-	if (h === 0) return arr[0][0]
-	if (h === undefined) return arr[arr.length-1][0]
+	if (j === 0) return arr[0][0]
+	if (j === undefined) return arr[arr.length-1][0]
 
-	var low = arr[h-1],
-			top = arr[h]
-	return low[0] + (top[0]-low[0]) * (this.data.sampleQuantity*q - Ws[h-1] + low[1]/2) * 2 /(top[1]+low[1])
+	var low = arr[j-1],
+			top = arr[j]
+
+	//Scaling over unit point upper side. if no weighting, reduces to R-6: ...*(h - Ws[j-1])
+	return low[0] + (top[0]-low[0]) * ((low[1]-1)/2 + h - Ws[j-1]) * 2 /(top[1]+low[1])
 }
 
 function quantiles(qs) {
-	var ctx = this
-	return qs.map(ctx.quantile)
+	return qs.map(this.quantile, this)
 }
 
 function push(v) {

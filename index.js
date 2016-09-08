@@ -82,6 +82,9 @@ function merge(ctx, item, tgtWgt) {
 }
 
 function compile() {
+	//takes to stacks: newValues and oldWeigted and reverses them both (min last) (1 sort, 1 reverse)
+	//takes the smallest from the two staks until empty to rebild a new sorted list (N check-pop-assign)
+	//
 	var data = this.data,
 			old = data.arr.reverse(),
 			nvs = data.nvs,
@@ -103,6 +106,8 @@ function compile() {
 }
 
 function quantile(q) {
+	//TODO: check if we need to consider weighting?
+	//TODO use new R6
 	if (!this.data.isCompiled) this.compile()
 	if (q>1) q *= 100
 
@@ -131,6 +136,6 @@ function push(v) {
 	else this.data.nvs.push(v)
 	this.data.sampleQuantity += v.length || 1
 	this.data.isCompiled = false
-	if (this.data.arr.length > this.options.maximumSize) this.compile()
+	if (this.size > this.options.maximumSize) this.compile()
 	return this
 }

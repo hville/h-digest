@@ -1,47 +1,41 @@
-var maxRankFac = require('./max-rank')
-
-module.exports = function(maximumSize) {
-	return new Quant(maximumSize)
+module.exports = function(length) {
+	//TODO length or [0..1] CDF or [any] PDF
+	return new Digest(smoothstep(length))
 }
-
-function compareDsc(a,b) { return b - a }
-
-function upperBound(arr, val, start) {
-	for (var i = start || 0; i<arr.length; ++i) if (arr[i] > val) return i
+function smoothstep(len) {
+	var ps = Array(len)
+	for (var i=0; i<len; ++i) {
+		var p = i/(len-1)
+		ps[i] = (15 + 10 * p - 30 * p*p + 12 * p*p*p) * p*p / 7
+	}
+	return ps
 }
+function Digest(probs) {
+	//var pushMode = pushLossless.bind(this)
+	this.length = probs.length
+	this.probs = probs
+	this.values = []
+	this.ranks = []
+	this.N = 0
 
-function Quant(maximumSize) {
-	this.maximumSize = maximumSize
-	this.getMaxRank = maxRankFac(maximumSize, 1, 1)
-	this.data = {
-		arr: [],
-		sampleQuantity: 0,
-		weights: []
+	this.push = function(val) {
+		if (Array.isArray(val)) for (var i=0; i<val.length; ++i) pushMode(val[i])
+		else pushMode(val)
 	}
 }
-
-Quant.prototype = {
+function dsc(a,b) {
+	return b - a
+}
+function upperBound(arr, val, start) {
+	for (var i = start || 0; i<arr.length; ++i) if (arr[i] >= val) return i
+}
+Digest.prototype = {
 	get size() { return this.data.arr.length },
-	get N() { return this.data.sampleQuantity },
-	get min() {
-		return this.data.arr[0][0]
-	},
-	get max() {
-		return this.data.arr[this.data.arr.length-1][0]
-	},
+	get min() {	return this.values[0] },
+	get max() {	return this.values[this.values.length -1]	},
 	push: push,
-	compile: compile,
-	quantile: quantile,
-	quantiles: quantiles,
-	reset: reset
+	quantile: quantile
 }
-
-function reset() {
-	this.data.arr.length = 0
-	this.data.sampleQuantity = 0
-	this.data.weights.length = 0
-}
-
 function merge(ctx, item, tgtWgt) {
 	var data = ctx.data,
 			target = data.arr,
@@ -57,8 +51,8 @@ function merge(ctx, item, tgtWgt) {
 	}
 	return tgtWgt
 }
-
 function quantile(q) {
+	if (Array.isArray(q)) return this.map(this.quantile, this)
 	//TODO: check if we need to consider weighting?
 	//TODO use new R6
 	if (q>1) q *= 100
@@ -76,13 +70,8 @@ function quantile(q) {
 	//Scaling over unit point upper side. if no weighting, reduces to R-6: ...*(h - Ws[j-1])
 	return low[0] + (top[0]-low[0]) * ((low[1]-1)/2 + h - Ws[j-1]) * 2 /(top[1]+low[1])
 }
-
-function quantiles(qs) {
-	return qs.map(this.quantile, this)
-}
-
 function push(v) {
-	var nvs = Array.prototype.concat(v).sort(compareDsc)
+	var nvs = Array.prototype.concat(v).sort(dsc)
 	var size = this.data.arr.length + nvs.length
 	this.data.sampleQuantity += nvs.length
 	if (size > this.maximumSize) compile(this, nvs)

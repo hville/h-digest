@@ -1,142 +1,109 @@
-module.exports = function(options) {
-	return new Quant({
-		maximumSize: options && options.maximumSize || 27,
-		nominalSize: options && options.nominalSize || 17
+/* eslint no-console:0 */
+require('untap').pipe()
+var tt = require('tt')
+
+var Quant = require('../index')
+
+tt('grows up to defined size', function(t) {
+	var q5 = Quant({
+		maximumSize: 9,
+		nominalSize: 5
 	})
-}
 
-function merge(tgt, src) {
-	if (tgt === src) return tgt
-	if (Array.isArray(src)) {
-		if (!src[1]) return tgt
-		tgt[0] = (tgt[0] * tgt[1] + src[0] * src[1]) / (tgt[1] + src[1])
-		tgt[1] += src[1]
-		src[1] = 0
+	var q17 = Quant()
+
+	t.equal(q5.N, 0)
+	t.equal(q17.N, 0)
+	t.equal(q5.size, 0)
+	t.equal(q17.size, 0)
+
+	q5.push(1)
+	q17.push(1)
+
+	t.equal(q5.N, 1)
+	t.equal(q17.N, 1)
+	t.equal(q5.size, 1)
+	t.equal(q17.size, 1)
+
+	q5.push([5,4,3,2,0])
+	q17.push([5,4,3,2,0])
+
+	t.equal(q5.size, 5)
+	t.equal(q5.N, 6)
+	t.equal(q17.size, 6)
+
+	t.equal(q5.quantile(0), 0)
+	t.equal(q17.quantile(0.5), 2.5)
+	t.equal(q5.quantile(1), 5)
+
+	q5.push([6,7,8,9])
+	q17.push([6,7,8,9])
+
+	t.equal(q5.size, 5)
+	t.equal(q5.N, 10)
+	t.equal(q17.N, 10)
+	t.equal(q17.size, 10)
+
+	t.equal(q5.quantile(0), 0)
+	t.equal(q5.quantile(0.5), 4.5)
+	t.equal(q17.quantile(0.5), 4.5)
+	t.equal(q5.quantile(1), 9)
+
+	q5.push([14,13,12,11,10])
+	q17.push([14,13,12,11,10])
+
+	t.equal(q5.size, 5)
+	t.equal(q17.N, 15)
+	t.equal(q5.N, 15)
+	t.equal(q17.size, 15)
+
+	t.equal(q5.quantile(0.5), 7)
+	t.equal(q17.quantile(0.5), 7)
+
+	t.end()
+})
+
+
+tt('sdfsdfsdf', function(t) {
+	function closeTo(a, b, d, msg) {
+		t.ok(Math.abs(a-b) < d, msg || a + ' !=~ ' + b)
 	}
-	else tgt[0] = (tgt[0] * tgt[1] + src) / ++tgt[1]
-	return tgt
-}
 
-function compareAsc(a,b) { return a[0] - b[0] }
+		var q23 = Quant({
+		maximumSize: 30,
+		nominalSize: 23
+	})
+	var q25 = Quant({
+		maximumSize: 35,
+		nominalSize: 25
+	})
 
-function upperBound(arr, val, start) {
-	for (var i = start || 0; i<arr.length; ++i) if (arr[i] > val) return i
-}
-
-function i2w2(N, W, i) {
-	var r = 2*i/(N-2)-1
-	return i === 0 ? 1
-		: i === N-1 ? W
-		: Math.ceil((W-2)/2 * (Math.SQRT2 * r / Math.sqrt(1+r*r) + 1) + 1)
-}
-
-function Quant(options) {
-	this.options = options
-	this.data = {
-		arr: [],
-		sampleQuantity: 0,
-		isCompiled: true,
-		weights: []
+	var N = 5001
+	for (var i=0, rnd=[]; i<N; ++i) {
+		var rand = Math.random()
+		rnd.push(rand)
+		q23.push(rand)
 	}
-}
+	q25.push(rnd)
 
-Quant.prototype = {
-	get size() { return Math.min(this.options.nominalSize, this.data.arr.length) },
-	get N() { return this.data.sampleQuantity },
-	get min() {
-		if (!this.data.isCompiled) this.compile()
-		return this.data.arr[0][0]
-	},
-	get max() {
-		if (!this.data.isCompiled) this.compile()
-		return this.data.arr[this.data.arr.length-1][0]
-	},
-	push: push,
-	compile: compile,
-	quantile: quantile,
-	quantiles: quantiles,
-	reset: reset
-}
+	rnd.sort(function(a,b) { return a-b })
+	var max = rnd[N-1]
+	var Q90 = rnd[Math.round((N-1)*0.9)]
+	var Q75 = rnd[Math.round((N-1)*0.75)]
+	var Q50 = rnd[Math.round((N-1)*0.5)]
+	var Q25 = rnd[Math.round((N-1)*0.25)]
+	var Q10 = rnd[Math.round((N-1)*0.10)]
+	var min = rnd[0]
 
-function reset() {
-	//this.data.size = this.options.nominalSize
-	this.data.arr.length = 0
-	this.data.sampleQuantity = 0
-	this.data.isCompiled = true
-	this.data.weights.length = 0
-}
+	closeTo(q23.quantile(0.5), Q50, 5e-3)
+	closeTo(q25.quantile(0.25), Q25, 5e-3)
 
-function miniCompile(ctx) {
-	var arr = ctx.data.arr,
-			Ws = ctx.data.weights
-	Ws[0] = arr[0][1]
-	for (var i=1; i<arr.length; ++i) Ws[i] = Ws[i-1] + arr[i][1]
-	if (ctx.data.weights[arr.length-1] !== ctx.data.sampleQuantity) {
-		throw Error('CompileError: weighting mismatch '+ctx.data.weights[arr.length-1]+'!=='+ctx.data.sampleQuantity )
-	}
-	ctx.data.isCompiled = true
-	return ctx
-}
+	closeTo(q23.quantile(0.75), Q75, 5e-3)
+	closeTo(q25.quantile(0.10), Q10, 5e-3)
+	closeTo(q25.quantile(0.90), Q90, 5e-3)
 
-function compile() {
-	var sumWi = 0,
-			iNext = 0,
-			arr = this.data.arr,
-			len = this.options.nominalSize
+	t.equal(q23.max, max)
+	t.equal(q25.min, min)
 
-	arr.sort(compareAsc)
-	if (arr.length <= this.options.nominalSize) return miniCompile(this)
-
-	for (var i=0; i<len; ++i) {
-		var targetWeight = i2w2(len, this.data.sampleQuantity, i)
-		sumWi += arr[i][1]
-		if (iNext <= i) iNext = i+1
-		while(iNext < arr.length && ((sumWi + arr[iNext][1]/2 < targetWeight) || arr[i][1] === 0)) {
-			sumWi += arr[iNext][1]
-			merge(arr[i], arr[iNext])
-			++iNext
-		}
-		this.data.weights[i] = sumWi
-	}
-	if (this.data.weights[len-1] !== this.data.sampleQuantity) {
-		throw Error('CompileError: weighting mismatch '+this.data.weights[len-1]+'!=='+this.data.sampleQuantity )
-	}
-	arr.length = len
-	this.data.isCompiled = true
-	return this
-}
-
-function quantile(q) {
-	if (!this.data.isCompiled) this.compile()
-	if (q>1) q *= 100
-
-	var Ws = this.data.weights,
-			h = upperBound(Ws, q*this.data.sampleQuantity),
-			arr = this.data.arr
-
-	if (h === 0) return arr[0][0]
-	if (h === undefined) return arr[arr.length-1][0]
-
-	var low = arr[h-1],
-			top = arr[h],
-			deltaValue = top[0]-low[0],
-			deltaWeight = (top[1]+low[1])/2
-
-	return low[0] + deltaValue / deltaWeight * (this.data.sampleQuantity*q - Ws[h-1] + low[1]/2)
-}
-
-function quantiles(qs) {
-	var ctx = this
-	return qs.map(ctx.quantile)
-}
-
-function push(v) {
-	if (Array.isArray(v)) for (var i=0; i<v.length; ++i) {
-		this.data.arr.push([v[i], 1])
-	}
-	else this.data.arr.push([v, 1])
-	this.data.sampleQuantity += v.length || 1
-	this.data.isCompiled = false
-	if (this.data.arr.length > this.options.maximumSize) this.compile()
-	return this
-}
+	t.end()
+})

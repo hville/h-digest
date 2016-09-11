@@ -2,15 +2,17 @@
 var tdigest = require('tdigest')
 var hdigest = require('../h-digest')
 
-var N = 15001
+var N = 55000,
+		M = 30
+
 for (var i=0, rnd=[]; i<N; ++i) {
 	var rand = ((Math.random()+Math.random()-1) * Math.random() * 100)
 	rnd.push(rand)
 }
-var td0 = new tdigest.TDigest(0.8, 24, 1.1) //this.size() > this.K / this.delta
-var td1 = new tdigest.TDigest(0.8, 24, 1.1)
-var hd0 = new hdigest(24)
-var hd1 = new hdigest(24)
+var td0 = new tdigest.TDigest(0.8, M, 1.1) //this.size() > this.K / this.delta
+var td1 = new tdigest.TDigest(0.8, M, 1.1)
+var hd0 = new hdigest(M)
+var hd1 = new hdigest(M)
 
 function time(fcn, val) {
 	var start = process.hrtime()
@@ -54,7 +56,7 @@ function qtls(obj, prop, qs, ref) {
 	var sumsq = 0
 	var dif = qs.map(function(q, k) {
 		var e = obj[prop](q) - ref[k]
-		console.log(qu)
+		//console.log(qu)
 		sumsq += e*e
 		return e
 	})

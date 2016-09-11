@@ -3,7 +3,7 @@ var c = require('cotest')
 var HD = require('../h-digest')
 
 c('general properties, methods and getters', function() {
-	var hd = HD(5)
+	var hd = HD([10,20,20,10])
 	hd.push(4)
 	hd.push([5,3,6,2,7,1,8])
 	hd.push(0)

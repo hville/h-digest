@@ -1,4 +1,7 @@
 /**
+ * Quantile function approximation for (almost) infinite stream of samples
+ * (up to 2^53 - 1 ~ 9e15)
+ *
  * If a length is provided, the internal weighting function is used
  * If a cdf array is provided ([0..1]) it is used as-is
  * Any other array is interpreted as relative weights to be summed and scaled to [0..1]

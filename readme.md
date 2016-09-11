@@ -41,7 +41,7 @@ console.log(hd0.quantile([0, 0.5, 1])) // [0, 4, 8]
 # Limitations
 
 * this is an initial proof of concept that has not yet gone through rigorous use
-(there is a chance that some sequences not yet tested could trigger a failure)
+(there is a chance that some not yet tested sequences could trigger a failure)
 * could use some more utility methods (pdf, cdf, ...)
 * currently no stops to prevent overwriting internal properties (all properties and methods are open)
 * works in node and the browser but required a CJS module bundler for the browser (webpack, browserify, ...)
@@ -50,11 +50,11 @@ console.log(hd0.quantile([0, 0.5, 1])) // [0, 4, 8]
 
 This proof of concept originated from the need to produce live animated boxplots
 for a large quantity of variables during continuous Monte Carlo simulations
-(ie. continuously computing the minimum, median, maximum, interquartile range, etc. for a stream of data).
+(ie. continuously computing the minimum, median, maximum, interquartile range, etc. for many streams of data).
 
 There is already a good implementation on npm ([tdigest](https://www.npmjs.com/package/tdigest))
 based on the [work of Dunning](https://github.com/tdunning/t-digest).
-But the algorithm seamed more appropriate for a growing compressed set instead of a fixed set (ie constant memory).
+But the algorithm seamed more appropriate for a large growing compressed set instead of a smaller fixed set (ie constant memory).
 
 This module makes a few significant changes to the algorithm:
 * Samples retained represent the maximum for a given rank (instead of value weighted centroid of fixed rank)
@@ -78,18 +78,18 @@ More [details available here](technical-notes.md) and in the short source code (
 The API is still subject to changes
 
 ## Properties
-`.N` number: total samples received
-`.length` number: constant size of the compressed samples (length of all internal arrays)
-`.probs` array: internal sigmoid/cdf used for selecting retained samples
-`.values` array: selected retained sample values
-`.ranks` array: interpolated ranks of retained samples
-`.min` number: the minimum of all samples received. Same as `quantile(0)`
-`.max` number: the minimum of all samples received. Same as `quantile(1)`
+* `.N` number: total samples received
+* `.length` number: constant size of the compressed samples (length of all internal arrays)
+* `.probs` array: internal sigmoid/cdf used for selecting retained samples
+* `.values` array: selected retained sample values
+* `.ranks` array: interpolated ranks of retained samples
+* `.min` number: the minimum of all samples. Same as `quantile(0)`
+* `.max` number: the minimum of all samples. Same as `quantile(1)`
 
 ## Methods
-`.push(number | array)` void: sample value(s) to be added
-`.quantile(number | array)` {number | array}: value(s) for specified probabilitie(s)
-`.percentile(number | array)` same as quantile, different name (*percentile values* from the *quantile function*)
+* `.push(number | array)` void: sample value(s) to be added
+* `.quantile(number | array)` {number | array}: value(s) for specified probabilitie(s)
+* `.percentile(number | array)` same as quantile, different name (*percentile values* from the *quantile function*)
 
 # License
 

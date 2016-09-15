@@ -1,34 +1,34 @@
 /* eslint no-console:0 */
 var tdigest = require('tdigest')
 var hdigest = require('../h-digest')
+var normz = require('random-z')
 
-var N = 10000,
-		M = 30,
-		rands = []
+var N = 1000,
+		M = 100,
+		rands = [],
+		norms = []
 
-//arbitrary non-linear skewed samples
 for (var i=0; i<N; ++i) {
+	norms.push(normz())
+	//arbitrary non-linear skewed samples
 	rands.push( (Math.random() - Math.random()) * Math.random() * 100)
 }
 
 var samples = {
 	float: rands,
+	norms: norms,
 	discrete: rands.map(Math.floor),
 	sorted: rands.slice().sort(sorter),
 	reverse: rands.slice().sort(sorter).reverse()
 }
-var td = {
-	float: new tdigest.TDigest(0.8, M, 1.1),
-	discrete: new tdigest.TDigest(0.8, M, 1.1),
-	sorted: new tdigest.TDigest(0.8, M, 1.1),
-	reverse: new tdigest.TDigest(0.8, M, 1.1)
-}
-var hd = {
-	float: new hdigest(M),
-	discrete: new hdigest(M),
-	sorted: new hdigest(M),
-	reverse: new hdigest(M)
-}
+var td = Object.keys(samples).reduce(function(r, k){
+	r[k] = new tdigest.TDigest(0.8, M, 1.1)
+	return r
+}, {})
+var hd = Object.keys(samples).reduce(function(r, k){
+	r[k] = new hdigest(M)
+	return r
+}, {})
 var percentages = [0.005, 0.02, .1, .25, .5, .75, .98, .995],
 		actuals = Object.keys(samples).reduce(function(r, k) {
 			r[k] = percentages.map(function(p) { return actualQuantile(samples[k].slice().sort(sorter), p)})
@@ -47,9 +47,12 @@ console.log('\n\n=== Errors ===')
 console.log('target percents: ', percentages.join(', '))
 Object.keys(samples).forEach(function(k) {
 	console.log('\n== ', k ,' ==')
-	console.log('tdigest ', qtls(td[k], 'percentile', percentages, actuals[k]))
-	console.log('hdigest ', qtls(hd[k], 'percentile', percentages, actuals[k]))
+	console.log('tdigest ', qtls(td, k, 'percentile', percentages, actuals[k]))
+	console.log('hdigest ', qtls(hd, k, 'percentile', percentages, actuals[k]))
 })
+console.log('\n== ALL ==')
+console.log('tdigest ', errStr(td.bias, td.sumsq, td.count))
+console.log('hdigest ', errStr(hd.bias, hd.sumsq, hd.count))
 console.log('\n\n=== END ===\n')
 
 function sorter(a, b) {
@@ -69,14 +72,27 @@ function oneByOne(obj, mtd) {
 		for (var j=0; j<rs.length; ++j) obj[mtd](rs[j])
 	}
 }
-function qtls(obj, prop, qs, ref) {
-	var sumsq = 0
+function qtls(obj, key, prop, qs, ref) {
+	var sum = 0,
+			sumsq = 0
 	var dif = qs.map(function(q, k) {
-		var e = obj[prop](q) - ref[k]
+		var e = obj[key][prop](q) - ref[k]
+		sum += e
 		sumsq += e*e
 		return e
 	})
-	return 'RMS:' + (Math.sqrt(sumsq)/qs.length).toFixed(2) + ', Err:' + dif.map(function(v) {
+	var bias = sum/qs.length
+	if (obj.bias === undefined) obj.bias = bias
+	else bias += bias
+	if (obj.sumsq === undefined) obj.sumsq = sumsq
+	else obj.sumsq += sumsq
+	if (obj.count === undefined) obj.count = 1
+	else obj.count++
+
+	return errStr(bias, sumsq, qs.length) + ', Err:' + dif.map(function(v) {
 		return (v*100).toFixed(2) }
 	).join(', ')
+}
+function errStr(bias, sumsq, count) {
+	return 'Bias:' + bias.toFixed(2) + ' RMS:' + (Math.sqrt(sumsq)/count).toFixed(2)
 }

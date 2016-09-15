@@ -42,7 +42,7 @@ module.exports = function(lenPdfCdf) {
 function createWeighting(len) {
 	var ps = Array(len)
 	for (var i=0; i<len; ++i) {
-		var p = i ===0 ? 0 : (i-2/len)/(len-1-2/len) //small shift to get a smaller left gap
+		var p = i ===0 ? 0 : i/(len-1)
 		ps[i] = (15 + 10 * p - 30 * p*p + 12 * p*p*p) * p*p / 7
 	}
 	return ps
@@ -96,14 +96,14 @@ function HDigest(probs) {
 			this._right(j, val, 1)
 			return
 		}
-		else if (val !== this.values[j]) {
+		if (val !== this.values[j]) {
 			var v1 = this.values[j],
 					r1 = this.ranks[j],
 					v0 = this.values[j-1],
 					r0 = this.ranks[j-1],
 					p0 = this.N * this.probs[j-1],
 					p1 = this.N * this.probs[j],
-					rnk = r1 - (r1 - r0 - 1) * (v1 - val) / (v1 - v0)
+					rnk = r1 - (r1 - r0) * (v1 - val) / (v1 - v0)
 			if (rnk > p1) this._right(j, val, rnk)
 			else if (rnk < p0) this._left(j-1, val, rnk)
 		}

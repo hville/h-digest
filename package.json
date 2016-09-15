@@ -13,15 +13,17 @@
   "author": "Hugo Villeneuve",
   "main": "./h-digest.js",
   "private": false,
-  "dependencies": {},
+  "dependencies": {
+    "random-z": "^0.1.5"
+  },
   "devDependencies": {
     "cotest": "^1.0.0",
     "tdigest": "^0.1.1"
   },
   "repository": {
-		"type": "git",
-		"url": "https://github.com/hville/h-digest.git"
-	},
+    "type": "git",
+    "url": "https://github.com/hville/h-digest.git"
+  },
   "scripts": {
     "test": "node ./tst/h-digest",
     "benchmark": "node ./tst/benchmark",

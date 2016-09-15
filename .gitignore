@@ -4,5 +4,5 @@ coverage/
 html-report/
 node_modules/
 bld/
-
+tmp/
 *.log

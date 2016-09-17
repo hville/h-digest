@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "description": "small minimal quantile and cdf estimator for multiple large data streams",
   "keywords": [
-    "quantiles",
-    "median",
-    "percentiles",
-    "t-digest",
-    "q-digest",
+    "quantiles", "quantiles",
+    "median", "quartile",
+    "percentile", "percentiles",
+    "t-digest", "q-digest",
     "monte-carlo"
   ],
   "author": "Hugo Villeneuve",

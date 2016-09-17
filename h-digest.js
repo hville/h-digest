@@ -47,8 +47,15 @@ function createWeighting(len) {
 	}
 	return ps
 }
-function upperBound(arr, val) {
-	for (var i = 0; i<arr.length; ++i) if (arr[i] >= val) return i
+function upperBound(arr, v) {
+	var low = 0,
+			high = arr.length
+	while (low < high) {
+		var mid = (low + high) >>> 1
+		if (arr[mid] < v) low = mid + 1
+		else high = mid
+	}
+	return high
 }
 function HDigest(probs) {
 	var pushMode = pushLossless.bind(this)
@@ -69,7 +76,7 @@ function HDigest(probs) {
 		++this.N
 		if (this.N === this.length) pushMode = pushCompress.bind(this)
 
-		if (j === undefined) {
+		if (j === this.values.length) {
 			this.values.push(val)
 			this.ranks.push(this.N)
 			return
@@ -87,7 +94,7 @@ function HDigest(probs) {
 
 	function pushCompress(val, j) {
 		++this.N
-		if (j === undefined) {
+		if (j === this.values.length) {
 			this._left(this.ranks.length-1, val, this.N)
 			return
 		}
@@ -165,6 +172,6 @@ function quantile(prob) {
 			h1 = this.ranks[j],
 			h0 = this.ranks[j-1]
 	return j < 1 ? this.values[0]
-		: j === undefined ? this.values[this.values.length-1]
+		: j === this.values.length ? this.values[this.values.length-1]
 		: this.values[j-1] + (this.values[j] - this.values[j-1]) * (h-h0) / (h1-h0)
 }

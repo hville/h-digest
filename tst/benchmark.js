@@ -3,8 +3,8 @@ var tdigest = require('tdigest')
 var hdigest = require('../h-digest')
 var normz = require('random-z')
 
-var N = 1000,
-		M = 100,
+var N = 10000,
+		M = 30,
 		rands = [],
 		norms = []
 

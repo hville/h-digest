@@ -7,6 +7,8 @@ c('general properties, methods and getters', function() {
 	hd.push(4)
 	hd.push([5,3,6,2,7,1,8])
 	hd.push(0)
+	console.log(hd.values)
+	console.log(hd.ranks)
 	c('==', hd.min, 0)
 	c('==', hd.max, 8)
 	c('==', hd.N, 9)

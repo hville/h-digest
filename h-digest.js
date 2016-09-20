@@ -1,6 +1,7 @@
 /**
  * Inpired by https://github.com/tdunning/t-digest
  * and by https://www.npmjs.com/package/tdigest
+ * with the algorithm changed to swap the value-rank axis
  */
 
 /**

@@ -1,15 +1,10 @@
-<!-- markdownlint-disable MD004 MD007 MD010 MD041	MD022 MD024	MD032 -->
+<!-- markdownlint-disable MD004 MD007 MD010 MD041 MD022 MD024 MD032 -->
 # h-digest
 
 *takes a large and continuous data stream and retains a CDF approximation* -
 ***small, simple, no dependencies***
 
-[Example](#Example) |
-[Features](#Features) |
-[Limitations](#Limitations) |
-[Why](#Why) |
-[API](#API) |
-[License](#license)
+• [Example](#Example) • [Features](#Features) • [Limitations](#Limitations) • [Why](#Why) • [API](#API) • [License](#license)
 
 # Example
 

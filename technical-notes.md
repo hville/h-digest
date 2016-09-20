@@ -66,6 +66,5 @@ Any [0..1] => [0..1] Sigmoid to increase edge accuracy
 * K = sqrt( (w/x)^2 + (w/(1-x))^2 ) = w/(x-x2) * sqrt( 1 - 2(x-x2) )
 * w = K(x-x2) / sqrt( 1 - 2(x-x2) ) --> center scaling
 * `(x-x2)(1+2(x-x2))`is a very good approximation === x x2 -4x3 +2x4
-	- parabola scaled with another inverse parabola
+  - parabola scaled with another inverse parabola
 * `CDF = (15x2 10x3 -30x4 12x5)/7`
-

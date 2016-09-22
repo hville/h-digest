@@ -59,71 +59,72 @@ function upperBound(arr, v) {
 	return high
 }
 function HDigest(probs) {
-	var pushMode = pushLossless.bind(this)
 	this.length = probs.length
 	this.probs = probs
 	this.values = []
 	this.ranks = []
 	this.N = 0
-
-	this.push = function(val) {
-		if (Array.isArray(val)) {
-			for (var i=0; i<val.length; ++i) pushMode(val[i], upperBound(this.values, val[i]))
-		}
-		else pushMode(val, upperBound(this.values, val))
-	}
-
-	function pushLossless(val, j) {
-		++this.N
-		if (this.N === this.length) pushMode = pushCompress.bind(this)
-
-		if (j === this.values.length) {
-			this.values.push(val)
-			this.ranks.push(this.N)
-			return
-		}
-		for (var i=j; i<this.ranks.length; ++i) ++this.ranks[i]
-		if (j === 0) {
-			this.values.unshift(val)
-			this.ranks.unshift(1)
-		}
-		else {
-			this.values.splice(j, 0, val)
-			this.ranks.splice(j, 0, this.ranks[j-1] + 1)
-		}
-	}
-
-	function pushCompress(val, j) {
-		++this.N
-		if (j === this.values.length) {
-			this._left(this.ranks.length-1, val, this.N)
-			return
-		}
-		for (var i=j; i<this.ranks.length; ++i) ++this.ranks[i]
-		if (j === 0) {
-			this._right(j, val, 1)
-			return
-		}
-		if (val !== this.values[j]) {
-			var v1 = this.values[j],
-					r1 = this.ranks[j],
-					v0 = this.values[j-1],
-					r0 = this.ranks[j-1],
-					p0 = this.N * this.probs[j-1],
-					p1 = this.N * this.probs[j],
-					rnk = r1 - (r1 - r0) * (v1 - val) / (v1 - v0)
-			if (rnk > p1) this._right(j, val, rnk)
-			else if (rnk < p0) this._left(j-1, val, rnk)
-		}
-	}
+	//methods linked in instance instead of prototype for faster access
+	this.push = push
+	this._pushMode = pushLossless
+	this._right = right
+	this._left = left
 }
 HDigest.prototype = {
-	_right: right,
-	_left: left,
 	percentile: quantile,
 	quantile: quantile,
 	get min() { return this.values[0] },
 	get max() { return this.values[this.values.length - 1] }
+}
+function push(val) {
+	if (Array.isArray(val)) {
+		for (var i=0; i<val.length; ++i) this._pushMode(val[i], upperBound(this.values, val[i]))
+	}
+	else this._pushMode(val, upperBound(this.values, val))
+}
+function pushLossless(val, j) {
+	++this.N
+	if (this.N === this.length) this._pushMode = pushCompress.bind(this)
+
+	if (j === this.values.length) {
+		this.values.push(val)
+		this.ranks.push(this.N)
+		return
+	}
+	for (var i=j; i<this.ranks.length; ++i) ++this.ranks[i]
+	if (j === 0) {
+		this.values.unshift(val)
+		this.ranks.unshift(1)
+	}
+	else {
+		this.values.splice(j, 0, val)
+		this.ranks.splice(j, 0, this.ranks[j-1] + 1)
+	}
+}
+function pushCompress(val, j) {
+	var vs = this.values,
+			rs = this.ranks
+	++this.N
+	if (j === vs.length) {
+		this._left(rs.length-1, val, this.N)
+		return
+	}
+	for (var i=j; i<rs.length; ++i) ++rs[i]
+	if (j === 0) {
+		this._right(j, val, 1)
+		return
+	}
+	if (val !== vs[j]) {
+		var v1 = vs[j],
+				r1 = rs[j],
+				v0 = vs[j-1],
+				r0 = rs[j-1],
+				p0 = this.N * this.probs[j-1],
+				p1 = this.N * this.probs[j],
+				rnk = r1 - (r1 - r0) * (v1 - val) / (v1 - v0)
+		if (rnk > p1) this._right(j, val, rnk)
+		else if (rnk < p0) this._left(j-1, val, rnk)
+	}
 }
 /**
  * inserts a new value, cascading to the high side
@@ -134,15 +135,13 @@ HDigest.prototype = {
  * @return {void}
  */
 function right(idx, val, rnk) {
-	if (idx === this.values.length - 2) return // the end is reached
+	if (idx > this.values.length - 3) return // never lower the max
 	var oldMin = this.values[idx],
-			oldRnk = this.ranks[idx],
-			np1 = this.N * this.probs[idx + 1]
+			oldRnk = this.ranks[idx]
 	this.values[idx] = val
 	this.ranks[idx] = rnk
-	// the ranks are decreased by one to reflect rank at time of insertion
-	// it is required to avoid a jam when sorted data is fed
-	if (this.ranks[idx+1] -1 - np1 >= np1 - oldRnk + 1) this._right(idx + 1, oldMin, oldRnk)
+	// continue shifting right if the interval is too loaded
+	if (oldRnk + this.ranks[idx+1] > 2 * this.N * this.probs[idx+1] + 2) this._right(idx + 1, oldMin, oldRnk)
 }
 /**
  * inserts a new value, cascading to the low side
@@ -153,13 +152,14 @@ function right(idx, val, rnk) {
  * @return {void}
  */
 function left(idx, val, rnk) {
-	if (idx === 0) return
+	if (idx < 2) return //never raise the minimum
 	var oldMax = this.values[idx],
-			oldRnk = this.ranks[idx],
-			np0 = this.N * this.probs[idx-1]
+			oldRnk = this.ranks[idx]
 	this.values[idx] = val
 	this.ranks[idx] = rnk
-	if (np0 - this.ranks[idx-1] >= oldRnk - np0) this._left(idx - 1, oldMax, oldRnk)
+	// continue shifting left if the interval is not loaded enough
+	//(np0 - this.ranks[idx-1] >= oldRnk - np0)
+	if (oldRnk + this.ranks[idx-1] < 2 * this.N * this.probs[idx-1]) this._left(idx - 1, oldMax, oldRnk)
 }
 /**
  * Quantile function, provide the value for a given probability
@@ -169,10 +169,10 @@ function left(idx, val, rnk) {
 function quantile(prob) {
 	if (Array.isArray(prob)) return prob.map(this.quantile, this)
 	var h = (this.N + 1) * prob,
-			j = upperBound(this.ranks, h),
-			h1 = this.ranks[j],
+			j = upperBound(this.ranks, h)
+	if (j < 1) return this.values[0]
+	var	h1 = this.ranks[j],
 			h0 = this.ranks[j-1]
-	return j < 1 ? this.values[0]
-		: j === this.values.length ? this.values[this.values.length-1]
+	return j === this.values.length ? this.values[this.values.length-1]
 		: this.values[j-1] + (this.values[j] - this.values[j-1]) * (h-h0) / (h1-h0)
 }

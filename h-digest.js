@@ -48,6 +48,7 @@ function createWeighting(len) {
 	}
 	return ps
 }
+// binary search
 function upperBound(arr, v) {
 	var low = 0,
 			high = arr.length
@@ -83,22 +84,24 @@ function push(val) {
 	else this._pushMode(val, upperBound(this.values, val))
 }
 function pushLossless(val, j) {
+	var vs = this.values,
+			rs = this.ranks
 	++this.N
 	if (this.N === this.length) this._pushMode = pushCompress.bind(this)
 
-	if (j === this.values.length) {
-		this.values.push(val)
-		this.ranks.push(this.N)
+	if (j === vs.length) {
+		vs.push(val)
+		rs.push(this.N)
 		return
 	}
-	for (var i=j; i<this.ranks.length; ++i) ++this.ranks[i]
+	for (var i=j; i<rs.length; ++i) ++rs[i]
 	if (j === 0) {
-		this.values.unshift(val)
-		this.ranks.unshift(1)
+		vs.unshift(val)
+		rs.unshift(1)
 	}
 	else {
 		this.values.splice(j, 0, val)
-		this.ranks.splice(j, 0, this.ranks[j-1] + 1)
+		rs.splice(j, 0, rs[j-1] + 1)
 	}
 }
 function pushCompress(val, j) {
@@ -115,13 +118,9 @@ function pushCompress(val, j) {
 		return
 	}
 	if (val !== vs[j]) {
-		var v1 = vs[j],
-				r1 = rs[j],
-				v0 = vs[j-1],
-				r0 = rs[j-1],
-				p0 = this.N * this.probs[j-1],
+		var p0 = this.N * this.probs[j-1],
 				p1 = this.N * this.probs[j],
-				rnk = r1 - (r1 - r0) * (v1 - val) / (v1 - v0)
+				rnk = rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1])
 		if (rnk > p1) this._right(j, val, rnk)
 		else if (rnk < p0) this._left(j-1, val, rnk)
 	}
@@ -171,8 +170,8 @@ function quantile(prob) {
 	var h = (this.N + 1) * prob,
 			j = upperBound(this.ranks, h)
 	if (j < 1) return this.values[0]
+	if (j === this.values.length) return this.values[this.values.length-1]
 	var	h1 = this.ranks[j],
 			h0 = this.ranks[j-1]
-	return j === this.values.length ? this.values[this.values.length-1]
-		: this.values[j-1] + (this.values[j] - this.values[j-1]) * (h-h0) / (h1-h0)
+	return this.values[j-1] + (this.values[j] - this.values[j-1]) * (h-h0) / (h1-h0)
 }

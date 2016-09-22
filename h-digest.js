@@ -87,7 +87,7 @@ function pushLossless(val, j) {
 	var vs = this.values,
 			rs = this.ranks
 	++this.N
-	if (this.N === this.length) this._pushMode = pushCompress.bind(this)
+	if (this.N === this.length) this._pushMode = pushCompress
 
 	if (j === vs.length) {
 		vs.push(val)
@@ -134,13 +134,15 @@ function pushCompress(val, j) {
  * @return {void}
  */
 function right(idx, val, rnk) {
-	if (idx > this.values.length - 3) return // never lower the max
-	var oldMin = this.values[idx],
-			oldRnk = this.ranks[idx]
-	this.values[idx] = val
-	this.ranks[idx] = rnk
+	var vs = this.values,
+			rs = this.ranks
+	if (idx > vs.length - 3) return // never lower the max
+	var oldMin = vs[idx],
+			oldRnk = rs[idx]
+	vs[idx] = val
+	rs[idx] = rnk
 	// continue shifting right if the interval is too loaded
-	if (oldRnk + this.ranks[idx+1] > 2 * this.N * this.probs[idx+1] + 2) this._right(idx + 1, oldMin, oldRnk)
+	if (oldRnk + rs[idx+1] > 2 * this.N * this.probs[idx+1] + 2) this._right(idx + 1, oldMin, oldRnk)
 }
 /**
  * inserts a new value, cascading to the low side
@@ -151,14 +153,15 @@ function right(idx, val, rnk) {
  * @return {void}
  */
 function left(idx, val, rnk) {
+	var vs = this.values,
+			rs = this.ranks
 	if (idx < 2) return //never raise the minimum
-	var oldMax = this.values[idx],
-			oldRnk = this.ranks[idx]
-	this.values[idx] = val
-	this.ranks[idx] = rnk
+	var oldMax = vs[idx],
+			oldRnk = rs[idx]
+	vs[idx] = val
+	rs[idx] = rnk
 	// continue shifting left if the interval is not loaded enough
-	//(np0 - this.ranks[idx-1] >= oldRnk - np0)
-	if (oldRnk + this.ranks[idx-1] < 2 * this.N * this.probs[idx-1]) this._left(idx - 1, oldMax, oldRnk)
+	if (oldRnk + rs[idx-1] < 2 * this.N * this.probs[idx-1]) this._left(idx - 1, oldMax, oldRnk)
 }
 /**
  * Quantile function, provide the value for a given probability
@@ -166,12 +169,14 @@ function left(idx, val, rnk) {
  * @return {number|array} value or array of values
  */
 function quantile(prob) {
+	var vs = this.values,
+			rs = this.ranks
 	if (Array.isArray(prob)) return prob.map(this.quantile, this)
 	var h = (this.N + 1) * prob,
-			j = upperBound(this.ranks, h)
-	if (j < 1) return this.values[0]
-	if (j === this.values.length) return this.values[this.values.length-1]
-	var	h1 = this.ranks[j],
-			h0 = this.ranks[j-1]
-	return this.values[j-1] + (this.values[j] - this.values[j-1]) * (h-h0) / (h1-h0)
+			j = upperBound(rs, h)
+	if (j < 1) return vs[0]
+	if (j === vs.length) return vs[vs.length-1]
+	var	h1 = rs[j],
+			h0 = rs[j-1]
+	return vs[j-1] + (vs[j] - vs[j-1]) * (h-h0) / (h1-h0)
 }

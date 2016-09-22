@@ -48,7 +48,7 @@ The choice between these 3 operations is based on matching the desired weighting
 
 # Interpolating a new rank for a new values
 * `v0 < v < v1`; `r0 < r < r1`
-* `r = r0 + (r1-r0)(v-v0)/(v1-v0) + 1` or `r1 - (r1-r0)(v1-v) / (v1-v0)` or `r1 - (r1-r0)(1 - (v-v0)/(v1-v0)`
+* `r = r0 + (r1-r0)(v-v0)/(v1-v0) + 1` or `r1 - (r1-r0)(v1-v) / (v1-v0)`
 
 # Weighting Function
 Any [0..1] => [0..1] Sigmoid to increase edge accuracy

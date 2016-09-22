@@ -30,16 +30,15 @@ console.log(hd0.quantile([0, 0.5, 1])) // [0, 4, 8]
 * very small code and footprint for large number of instances
 * around than 175 sloc, no dependencies, 2kb minified
 * constant memory use, no compression steps and/or triggered garbage collection
-* significantly faster than other implementations (about 3x gain)
-* tested for random floats, discrete values, sorted values and repeated values
+* significantly faster than other implementations (about 5x gain)
+* tested with random floats, discrete values, sorted values, repeated values and skewed distribution
 
 # Limitations
 
-* this is an initial proof of concept that has not yet gone through rigorous use
-(there is a chance that some not yet tested sequences could trigger a failure)
-* could use some more utility methods (pdf, cdf, ...)
+* no other utility methods (pdf, cdf, mean, variance)
 * currently no stops to prevent overwriting internal properties (all properties and methods are open)
-* works in node and the browser but required a CJS module bundler for the browser (webpack, browserify, ...)
+* works in node and the browser but requires a CJS module bundler for the browser (webpack, browserify, ...)
+* the remaining selected values do not preserve the mean of the inputs
 
 # Why
 
@@ -70,9 +69,7 @@ More [details available here](technical-notes.md) and in the short source code (
 
 # API
 
-The API is still subject to changes
-
-## Properties
+## Properties (all readonly. do not overwrite)
 * `.N` number: total samples received
 * `.length` number: constant size of the compressed samples (length of all internal arrays)
 * `.probs` array: internal sigmoid/cdf used for selecting retained samples

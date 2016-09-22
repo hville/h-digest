@@ -30,7 +30,7 @@ console.log(hd0.quantile([0, 0.5, 1])) // [0, 4, 8]
 * very small code and footprint for large number of instances
 * around than 175 sloc, no dependencies, 2kb minified
 * constant memory use, no compression steps and/or triggered garbage collection
-* significantly faster than other implementations (about 5x gain)
+* significantly faster than other implementations (about 5-7x faster)
 * tested with random floats, discrete values, sorted values, repeated values and skewed distribution
 
 # Limitations

@@ -1,6 +1,6 @@
 {
   "name": "h-digest",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "small minimal quantile and cdf estimator for multiple large data streams",
   "keywords": [
     "quantiles",
@@ -20,6 +20,7 @@
     "random-z": "^0.1.5"
   },
   "devDependencies": {
+    "array-shuffle": "^1.0.1",
     "cotest": "^1.0.0",
     "power-sums": "^1.1.0",
     "tdigest": "^0.1.1"

@@ -48,7 +48,7 @@ for a large quantity of variables during continuous Monte Carlo simulations
 
 There is already a good implementation on npm ([tdigest](https://www.npmjs.com/package/tdigest))
 based on the [work of Dunning](https://github.com/tdunning/t-digest).
-But the algorithm seamed more appropriate for a large growing compressed set instead of a smaller fixed set (ie constant memory).
+But the algorithm is more appropriate for a large growing compressed set instead of a smaller fixed set (ie constant memory).
 
 This module makes a few significant changes to the algorithm:
 * Samples retained represent the maximum for a given rank (instead of value weighted centroid of fixed rank)

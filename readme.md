@@ -4,7 +4,7 @@
 *takes a large and continuous data stream and retains a CDF approximation* -
 ***small, simple, no dependencies***
 
-• [Example](#Example) • [Features](#Features) • [Limitations](#Limitations) • [Why](#Why) • [API](#API) • [License](#license)
+• [Example](#example) • [Features](#features) • [Limitations](#limitations) • [Why](#why) • [API](#api) • [License](#license)
 
 # Example
 

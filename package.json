@@ -1,6 +1,6 @@
 {
   "name": "h-digest",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "small minimal quantile and cdf estimator for multiple large data streams",
   "keywords": [
     "quantiles",
@@ -16,10 +16,9 @@
   "author": "Hugo Villeneuve",
   "main": "./h-digest.js",
   "private": false,
-  "dependencies": {
-    "random-z": "^1.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "random-z": "^1.0.0",
     "array-shuffle": "^1.0.1",
     "cotest": "^1.3.0",
     "power-sums": "^1.1.0",

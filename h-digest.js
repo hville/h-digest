@@ -43,7 +43,7 @@ module.exports = function(lenPdfCdf) {
 function createWeighting(len) {
 	var ps = Array(len)
 	for (var i=0; i<len; ++i) {
-		var p = i ===0 ? 0 : i/(len-1)
+		var p = i/(len-1)
 		ps[i] = (15 + 10 * p - 30 * p*p + 12 * p*p*p) * p*p / 7
 	}
 	return ps
@@ -60,22 +60,23 @@ function upperBound(arr, v) {
 	return high
 }
 function HDigest(probs) {
+	// properties
 	this.length = probs.length
 	this.probs = probs
 	this.values = []
 	this.ranks = []
 	this.N = 0
-	//methods linked in instance instead of prototype for faster access
-	this.push = push
+	// method
 	this._pushMode = pushLossless
-	this._right = right
-	this._left = left
 }
 HDigest.prototype = {
 	percentile: quantile,
 	quantile: quantile,
 	get min() { return this.values[0] },
-	get max() { return this.values[this.values.length - 1] }
+	get max() { return this.values[this.values.length - 1] },
+	_right: right,
+	_left: left,
+	push: push
 }
 function push(val) {
 	if (Array.isArray(val)) {
@@ -84,17 +85,23 @@ function push(val) {
 	else this._pushMode(val, upperBound(this.values, val))
 }
 function pushLossless(val, j) {
+	if (this.N === this.length) {
+		this._pushMode = pushCompress
+		return this._pushMode(val, j)
+	}
+
 	var vs = this.values,
 			rs = this.ranks
 	++this.N
-	if (this.N === this.length) this._pushMode = pushCompress
 
 	if (j === vs.length) {
 		vs.push(val)
 		rs.push(this.N)
 		return
 	}
+
 	for (var i=j; i<rs.length; ++i) ++rs[i]
+
 	if (j === 0) {
 		vs.unshift(val)
 		rs.unshift(1)

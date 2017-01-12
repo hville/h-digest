@@ -7,8 +7,7 @@
 
 ## [Unreleased]
 ~~Removed, Changed, Deprecated, Added, Fixed, Security~~
-- distribution fitting: skew, kurt
-- https://en.wikipedia.org/wiki/Maximum_likelihood_estimation
+- ~~[distribution fitting](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation)~~
 
 ## [1.1.0] - 2017-01-12
 ### Changes

@@ -1,7 +1,6 @@
 /**
  * Inpired by https://github.com/tdunning/t-digest
  * and by https://www.npmjs.com/package/tdigest
- * with the algorithm changed to swap the value-rank axis
  */
 
 /**
@@ -16,13 +15,17 @@
  * @return {object} - new sample compressor
  */
 module.exports = function(lenPdfCdf) {
-	return new HDigest(
-		!Array.isArray(lenPdfCdf) ? createWeighting(lenPdfCdf)
-		: lenPdfCdf[0] === 0 && lenPdfCdf[lenPdfCdf.length-1] === 1 ? lenPdfCdf
-		: lenPdfCdf
-			.reduce(function(r, v) { r.push(v); return r }, [0])
-			.map(function(v,i,a) { return v/a[a.length-1] })
-	)
+	// a length number
+	if (!Array.isArray(lenPdfCdf)) return new HDigest(createWeighting(lenPdfCdf))
+	// a cdf
+	if (lenPdfCdf.every(function(v,i,a) { return i ? (v >= a[i-1] && v <= 1) : v >= 0 })) {
+		return new HDigest(lenPdfCdf)
+	}
+	// a pdf
+	if (lenPdfCdf[0]) lenPdfCdf.unshift(0) //to preserve minimum
+	if (lenPdfCdf[lenPdfCdf.length-1]) lenPdfCdf.push(0) //to preserve maximum
+	var sum = lenPdfCdf.reduce(function(r, v) { return r + v })
+	return new HDigest(lenPdfCdf.map(function(v) { return v/sum }))
 }
 /**
  * Weighting function
@@ -37,6 +40,7 @@ module.exports = function(lenPdfCdf) {
  *	 - very good approximation: w = k(x-x2)(1+2(x-x2))
  *	 - integrates to y = ( 15x^2 + 10x^3 - 30x^4 + 12x^5 ) / 7
  * Only the RMS method is used here
+ * Evaluated at half intervals (i+1/2)/(M-2); 0<i<M-2
  * @param	{number} len number of retained values
  * @return {array} node weighting array [0..1]
  */
@@ -90,7 +94,6 @@ function pushLossless(val, j) {
 		this._pushMode = pushCompress
 		return this._pushMode(val, j)
 	}
-
 	var vs = this.values,
 			rs = this.ranks,
 			i
@@ -113,33 +116,41 @@ function pushLossless(val, j) {
 function pushCompress(val, j) {
 	var vs = this.values,
 			rs = this.ranks
-	var p0, p1, i
+	var i
 	++this.N
 
 	switch (j) {
 		case vs.length:
-			return this._left(rs.length-1, val, this.N)
+			return this._left(j-1, val, this.N)
 		case 0:
-			for (i=j; i<rs.length; ++i) ++rs[i]
-			return this._right(j, val, 1)
+			for (i=0; i<rs.length; ++i) ++rs[i]
+			return this._right(0, val, 1)
 		case 1:
-			p0 = this.probs[0]
-			p1 = this.probs[2] //wider interval to reduce interpolation errors
-			break
-		case vs.length-1:
-			p0 = this.probs[j-2] //wider interval to reduce interpolation errors
-			p1 = this.probs[j]
-			break
+			for (i=1; i<rs.length; ++i) ++rs[i]
+			if (val === vs[1]) return
+			if ((rs[1] + rs[0])/2/this.N > this.probs[2]) {
+				return this._right(1, val, rs[1] - (rs[1] - rs[0]) * (vs[1] - val) / (vs[1] - vs[0]))
+			}
+			return
+		case rs.length-1:
+			++rs[j]
+			if (val === vs[j]) return
+			if ((rs[j] + rs[j-1])/2/this.N < this.probs[j-2]) {
+				return this._left(j-1, val, rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1]))
+			}
+			return
 		default:
-			p0 = this.probs[j-2] //wider interval to reduce interpolation errors
-			p1 = this.probs[j+1] //wider interval to reduce interpolation errors
-			break
+			for (i=j; i<rs.length; ++i) ++rs[i]
+			if (val === vs[j]) return
+			var prb = (rs[j] + rs[j-1])/2/this.N
+			if (prb > this.probs[j+1]) {
+				return this._right(j, val, rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1]))
+			}
+			if (prb < this.probs[j-2]) {
+				return this._left(j-1, val, rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1]))
+			}
 	}
-	for (i=j; i<rs.length; ++i) ++rs[i]
-	if (val === vs[j]) return
-	var rnk = rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1])
-	if (rnk > this.N * p1) return this._right(j, val, rnk)
-	if (rnk < this.N * p0) return this._left(j-1, val, rnk)
+
 }
 /**
  * inserts a new value, cascading to the high side
@@ -152,13 +163,12 @@ function pushCompress(val, j) {
 function right(idx, val, rnk) {
 	var vs = this.values,
 			rs = this.ranks
-	if (idx > vs.length - 3) return // leave last interval untouched
 	var oldMin = vs[idx],
 			oldRnk = rs[idx]
 	vs[idx] = val
 	rs[idx] = rnk
-	// continue shifting right if the interval is too loaded
-	if (rs[idx+1] > this.N * this.probs[idx+2]) return this._right(idx + 1, oldMin, oldRnk)
+	// shift while oldMin fits in next band v[j] < oldMin < v[j+1]
+	if (oldRnk/this.N > this.probs[idx+1]) return this._right(idx+1, oldMin, oldRnk)
 }
 /**
  * inserts a new value, cascading to the low side
@@ -171,13 +181,12 @@ function right(idx, val, rnk) {
 function left(idx, val, rnk) {
 	var vs = this.values,
 			rs = this.ranks
-	if (idx < 2) return // leave first interval untouched
 	var oldMax = vs[idx],
 			oldRnk = rs[idx]
 	vs[idx] = val
 	rs[idx] = rnk
-	// continue shifting left if the interval is not loaded enough
-	if (rs[idx-1] < this.N * this.probs[idx-2]) return this._left(idx - 1, oldMax, oldRnk)
+	// shift while oldMax fits in left band v[j-1] < oldMax < v[j]
+	if (oldRnk/this.N < this.probs[idx-1]) return this._left(idx-1, oldMax, oldRnk)
 }
 /**
  * Quantile function, provide the value for a given probability

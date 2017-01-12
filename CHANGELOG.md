@@ -9,6 +9,15 @@
 ~~Removed, Changed, Deprecated, Added, Fixed, Security~~
 - ~~[distribution fitting](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation)~~
 
+
+## [2.0.0] - 2017-01-13
+### Changes
+- Input weights during initiation are padded with 0 and 1 to preserve min and max
+
+### Fixed
+- Improved arguments parsing
+
+
 ## [1.1.0] - 2017-01-12
 ### Changes
 - Widening of the max/min weight limits to reduce the number of interpolation

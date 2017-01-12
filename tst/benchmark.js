@@ -4,8 +4,8 @@ var hdigest = require('../h-digest')
 
 var normz = require('random-z')
 
-var N = 50000,
-		M = 25,
+var N = 10000,
+		M = 40,
 		unif = mapRep(N, function() { return Math.random() * 100 }),
 		norm = mapRep(N, function() { return normz() * 100 }),
 		logp = mapRep(N, function() { return Math.exp(normz()+0.5) * 100 })

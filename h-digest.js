@@ -70,6 +70,7 @@ function HDigest(probs) {
 	this._pushMode = pushLossless
 }
 HDigest.prototype = {
+	constructor: HDigest,
 	percentile: quantile,
 	quantile: quantile,
 	get min() { return this.values[0] },
@@ -82,7 +83,7 @@ function push(val) {
 	if (Array.isArray(val)) {
 		for (var i=0; i<val.length; ++i) this._pushMode(val[i], upperBound(this.values, val[i]))
 	}
-	else this._pushMode(val, upperBound(this.values, val))
+	else return this._pushMode(val, upperBound(this.values, val))
 }
 function pushLossless(val, j) {
 	if (this.N === this.length) {
@@ -91,46 +92,54 @@ function pushLossless(val, j) {
 	}
 
 	var vs = this.values,
-			rs = this.ranks
+			rs = this.ranks,
+			i
 	++this.N
 
-	if (j === vs.length) {
-		vs.push(val)
-		rs.push(this.N)
-		return
-	}
-
-	for (var i=j; i<rs.length; ++i) ++rs[i]
-
-	if (j === 0) {
-		vs.unshift(val)
-		rs.unshift(1)
-	}
-	else {
-		this.values.splice(j, 0, val)
-		rs.splice(j, 0, rs[j-1] + 1)
+	switch (j) {
+		case vs.length:
+			vs.push(val)
+			return rs.push(this.N)
+		case 0:
+			for (i=j; i<rs.length; ++i) ++rs[i]
+			vs.unshift(val)
+			return rs.unshift(1)
+		default:
+			for (i=j; i<rs.length; ++i) ++rs[i]
+			this.values.splice(j, 0, val)
+			rs.splice(j, 0, rs[j-1] + 1)
 	}
 }
 function pushCompress(val, j) {
 	var vs = this.values,
 			rs = this.ranks
+	var p0, p1, i
 	++this.N
-	if (j === vs.length) {
-		this._left(rs.length-1, val, this.N)
-		return
+
+	switch (j) {
+		case vs.length:
+			return this._left(rs.length-1, val, this.N)
+		case 0:
+			for (i=j; i<rs.length; ++i) ++rs[i]
+			return this._right(j, val, 1)
+		case 1:
+			p0 = this.probs[0]
+			p1 = this.probs[2] //wider interval to reduce interpolation errors
+			break
+		case vs.length-1:
+			p0 = this.probs[j-2] //wider interval to reduce interpolation errors
+			p1 = this.probs[j]
+			break
+		default:
+			p0 = this.probs[j-2] //wider interval to reduce interpolation errors
+			p1 = this.probs[j+1] //wider interval to reduce interpolation errors
+			break
 	}
-	for (var i=j; i<rs.length; ++i) ++rs[i]
-	if (j === 0) {
-		this._right(j, val, 1)
-		return
-	}
-	if (val !== vs[j]) {
-		var p0 = this.N * this.probs[j-1],
-				p1 = this.N * this.probs[j],
-				rnk = rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1])
-		if (rnk > p1) this._right(j, val, rnk)
-		else if (rnk < p0) this._left(j-1, val, rnk)
-	}
+	for (i=j; i<rs.length; ++i) ++rs[i]
+	if (val === vs[j]) return
+	var rnk = rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1])
+	if (rnk > this.N * p1) return this._right(j, val, rnk)
+	if (rnk < this.N * p0) return this._left(j-1, val, rnk)
 }
 /**
  * inserts a new value, cascading to the high side
@@ -143,13 +152,13 @@ function pushCompress(val, j) {
 function right(idx, val, rnk) {
 	var vs = this.values,
 			rs = this.ranks
-	if (idx > vs.length - 3) return // never lower the max
+	if (idx > vs.length - 3) return // leave last interval untouched
 	var oldMin = vs[idx],
 			oldRnk = rs[idx]
 	vs[idx] = val
 	rs[idx] = rnk
 	// continue shifting right if the interval is too loaded
-	if (oldRnk + rs[idx+1] > 2 * this.N * this.probs[idx+1] + 2) this._right(idx + 1, oldMin, oldRnk)
+	if (rs[idx+1] > this.N * this.probs[idx+2]) return this._right(idx + 1, oldMin, oldRnk)
 }
 /**
  * inserts a new value, cascading to the low side
@@ -162,13 +171,13 @@ function right(idx, val, rnk) {
 function left(idx, val, rnk) {
 	var vs = this.values,
 			rs = this.ranks
-	if (idx < 2) return //never raise the minimum
+	if (idx < 2) return // leave first interval untouched
 	var oldMax = vs[idx],
 			oldRnk = rs[idx]
 	vs[idx] = val
 	rs[idx] = rnk
 	// continue shifting left if the interval is not loaded enough
-	if (oldRnk + rs[idx-1] < 2 * this.N * this.probs[idx-1]) this._left(idx - 1, oldMax, oldRnk)
+	if (rs[idx-1] < this.N * this.probs[idx-2]) return this._left(idx - 1, oldMax, oldRnk)
 }
 /**
  * Quantile function, provide the value for a given probability

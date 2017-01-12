@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD004 MD007 MD010 MD041	MD022 MD024	MD032 -->
+[TODO](https://en.wikipedia.org/wiki/Empirical_distribution_function)
 
 # Requirements
 
@@ -54,17 +55,17 @@ The choice between these 3 operations is based on matching the desired weighting
 Any [0..1] => [0..1] Sigmoid to increase edge accuracy
 
 ## Weighting for Constant Errors relative to ends
-* w/x + w/(1-x) = w/(x-x2) = K
-* w = `6x(1 - x)` --> parabola pdf
+* `w/x + w/(1-x) = w/(x-x2) = K`
+* `w = 6x(1 - x)` --> parabola pdf
 * `cdf = 3x^2 - 2x^3`
 
 ## Weighting for Constant Errors relative closest ends
-* K = x < 1/2 ? w/x : w/(1-x)
-* w = x < 1/2 ? Kx : K(1-x) --> triangular
+* `K = x < 1/2 ? w/x : w/(1-x)`
+* `w = x < 1/2 ? Kx : K(1-x)` --> triangular
 
 ## Weighting for Constant Errors relative to ends RMS
-* K = sqrt( (w/x)^2 + (w/(1-x))^2 ) = w/(x-x2) * sqrt( 1 - 2(x-x2) )
-* w = K(x-x2) / sqrt( 1 - 2(x-x2) ) --> center scaling
-* `(x-x2)(1+2(x-x2))`is a very good approximation === x x2 -4x3 +2x4
+* `K = sqrt( (w/x)^2 + (w/(1-x))^2 )` = `w/(x-x2) * sqrt( 1 - 2(x-x2) )`
+* `w = K(x-x2) / sqrt( 1 - 2(x-x2) )` --> center scaling
+* `(x-x2)(1+2(x-x2)) === x x2 -4x3 +2x4` is a very good approximation
   - parabola scaled with another inverse parabola
 * `CDF = (15x2 10x3 -30x4 12x5)/7`

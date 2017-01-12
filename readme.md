@@ -1,7 +1,8 @@
 <!-- markdownlint-disable MD004 MD007 MD010 MD041 MD022 MD024 MD032 -->
 # h-digest
 
-*takes a large and continuous data stream and retains a CDF approximation* -
+*takes a large and continuous data stream and continuously only retain a reduced [empirical CDF](https://en.wikipedia.org/wiki/Empirical_distribution_function) approximation*
+
 ***small, simple, no dependencies***
 
 • [Example](#example) • [Features](#features) • [Limitations](#limitations) • [Why](#why) • [API](#api) • [License](#license)
@@ -28,9 +29,9 @@ console.log(hd0.quantile([0, 0.5, 1])) // [0, 4, 8]
 # Features
 
 * very small code and footprint for large number of instances
-* around than 175 sloc, no dependencies, 2kb minified
+* less than 200 sloc, no dependencies, 2kb minified
 * constant memory use, no compression steps and/or triggered garbage collection
-* significantly faster than other implementations (about 5-7x faster)
+* significantly faster than other implementations (about 3-5x faster)
 * tested with random floats, discrete values, sorted values, repeated values and skewed distribution
 
 # Limitations
@@ -62,10 +63,7 @@ The above points are thought to yield the following benefits:
 * Better handling of sorted data, discrete data and repeated identical values
 * Faster, smaller footprint for hundreds of instances to measure hundreads of instruments
 
-There is likely other similar implementations around but I have not found them.
-Drop a line if you know some and I will add a section for other implementaitons.
-
-More [details available here](technical-notes.md) and in the short source code (~100 sloc)
+More [details available here](technical-notes.md)
 
 # API
 
@@ -85,4 +83,4 @@ More [details available here](technical-notes.md) and in the short source code (
 
 # License
 
-Released under the [MIT License](http://www.opensource.org/licenses/MIT)
+[MIT](http://www.opensource.org/licenses/MIT) © [Hugo Villeneuve](https://github.com/hville)

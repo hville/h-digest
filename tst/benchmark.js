@@ -4,8 +4,8 @@ var hdigest = require('../h-digest')
 
 var normz = require('random-z')
 
-var N = 20000,
-		M = 27,
+var N = 50000,
+		M = 25,
 		unif = mapRep(N, function() { return Math.random() * 100 }),
 		norm = mapRep(N, function() { return normz() * 100 }),
 		logp = mapRep(N, function() { return Math.exp(normz()+0.5) * 100 })
@@ -19,20 +19,16 @@ var samples = {
 	rvrs: unif.slice().sort(sorter).reverse()
 }
 var fcn = {
-	td1: Object.keys(samples).reduce(function(r, k){
+	td1: Object.keys(samples).reduce(function(r, k) {
 		r[k] = new tdigest.TDigest(0.8, M, 1.1)
 		return r
 	}, {}),
-	hd1: Object.keys(samples).reduce(function(r, k){
+	hd1: Object.keys(samples).reduce(function(r, k) {
 		r[k] = new hdigest(M)
 		return r
-	}, {}),
-	hd2: Object.keys(samples).reduce(function(r, k){
-		r[k] = new hdigest(2*M)
-		return r
-	}, {}),
+	}, {})
 }
-var percentages = [0.005, 0.02, .1, .25, .5, .75, .98, .995],
+var percentages = [0.02, .1, .25, .5, .75, .98], //[0.02, .1, .25, .5, .75, .98],//[0.005, 0.02, .1, .25, .5, .75, .98, .995],
 		actuals = Object.keys(samples).reduce(function(r, k) {
 			r[k] = percentages.map(function(p) { return actualQuantile(samples[k].slice().sort(sorter), p)})
 			return r

@@ -9,6 +9,11 @@
 ~~Removed, Changed, Deprecated, Added, Fixed, Security~~
 - ~~[distribution fitting](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation)~~
 
+## [2.0.1] - 2017-01-13
+### Changes
+- Tests for Bias and RMS errors
+- Simply code a little
+
 
 ## [2.0.0] - 2017-01-13
 ### Changes

@@ -116,41 +116,30 @@ function pushLossless(val, j) {
 function pushCompress(val, j) {
 	var vs = this.values,
 			rs = this.ranks
-	var i
+	var rnk
 	++this.N
+	for (var i=j; i<rs.length; ++i) ++rs[i]
+	if (val === vs[1]) return
 
 	switch (j) {
 		case vs.length:
 			return this._left(j-1, val, this.N)
 		case 0:
-			for (i=0; i<rs.length; ++i) ++rs[i]
 			return this._right(0, val, 1)
 		case 1:
-			for (i=1; i<rs.length; ++i) ++rs[i]
-			if (val === vs[1]) return
-			if ((rs[1] + rs[0])/2/this.N > this.probs[2]) {
-				return this._right(1, val, rs[1] - (rs[1] - rs[0]) * (vs[1] - val) / (vs[1] - vs[0]))
-			}
+			rnk = rs[1] - (rs[1] - rs[0]) * (vs[1] - val) / (vs[1] - vs[0])
+			if (rnk/this.N > this.probs[2]) return this._right(1, val, rnk)
 			return
 		case rs.length-1:
-			++rs[j]
-			if (val === vs[j]) return
-			if ((rs[j] + rs[j-1])/2/this.N < this.probs[j-2]) {
-				return this._left(j-1, val, rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1]))
-			}
+			rnk = rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1])
+			if (rnk/this.N < this.probs[j-2]) return this._left(j-1, val, rnk)
 			return
 		default:
-			for (i=j; i<rs.length; ++i) ++rs[i]
-			if (val === vs[j]) return
-			var prb = (rs[j] + rs[j-1])/2/this.N
-			if (prb > this.probs[j+1]) {
-				return this._right(j, val, rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1]))
-			}
-			if (prb < this.probs[j-2]) {
-				return this._left(j-1, val, rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1]))
-			}
+			rnk = rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1])
+			var prb = rnk/this.N
+			if (prb > this.probs[j+1]) return this._right(j, val, rnk)
+			if (prb < this.probs[j-2]) return this._left(j-1, val, rnk)
 	}
-
 }
 /**
  * inserts a new value, cascading to the high side

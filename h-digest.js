@@ -119,7 +119,7 @@ function pushCompress(val, j) {
 	var rnk
 	++this.N
 	for (var i=j; i<rs.length; ++i) ++rs[i]
-	if (val === vs[1]) return
+	if (val === vs[j]) return
 
 	switch (j) {
 		case vs.length:

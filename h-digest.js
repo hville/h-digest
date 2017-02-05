@@ -95,23 +95,14 @@ function pushLossless(val, j) {
 		return this._pushMode(val, j)
 	}
 	var vs = this.values,
-			rs = this.ranks,
-			i
+			rs = this.ranks
 	++this.N
-
-	switch (j) {
-		case vs.length:
-			vs.push(val)
-			return rs.push(this.N)
-		case 0:
-			for (i=j; i<rs.length; ++i) ++rs[i]
-			vs.unshift(val)
-			return rs.unshift(1)
-		default:
-			for (i=j; i<rs.length; ++i) ++rs[i]
-			this.values.splice(j, 0, val)
-			rs.splice(j, 0, rs[j-1] + 1)
+	for (var i=rs.length; i>j; --i) {
+		rs[i] = rs[i-1]+1
+		vs[i] = vs[i-1]
 	}
+	rs[j] = j ? rs[j-1] + 1 : 1
+	vs[j] = val
 }
 function pushCompress(val, j) {
 	var vs = this.values,
@@ -144,14 +135,16 @@ function pushCompress(val, j) {
  * @return {void}
  */
 function right(idx, val, rnk) {
-	var vs = this.values,
-			rs = this.ranks
-	var oldMin = vs[idx],
-			oldRnk = rs[idx]
-	vs[idx] = val
+	var rs = this.ranks,
+			vs = this.values,
+			end = idx
+	while (rs[end] > this.probs[end+1]*this.N) ++end
+	for (var i=end; i>idx; --i) {
+		rs[i] = rs[i-1]
+		vs[i] = vs[i-1]
+	}
 	rs[idx] = rnk
-	// shift while oldMin fits in next band v[j] < oldMin < v[j+1]
-	if (oldRnk/this.N > this.probs[idx+1]) return this._right(idx+1, oldMin, oldRnk)
+	vs[idx] = val
 }
 /**
  * inserts a new value, cascading to the low side
@@ -162,14 +155,16 @@ function right(idx, val, rnk) {
  * @return {void}
  */
 function left(idx, val, rnk) {
-	var vs = this.values,
-			rs = this.ranks
-	var oldMax = vs[idx],
-			oldRnk = rs[idx]
-	vs[idx] = val
+	var rs = this.ranks,
+			vs = this.values,
+			end = idx
+	while (rs[end] < this.probs[end-1]*this.N) --end
+	for (var i=end; i<idx; ++i) {
+		rs[i] = rs[i+1]
+		vs[i] = vs[i+1]
+	}
 	rs[idx] = rnk
-	// shift while oldMax fits in left band v[j-1] < oldMax < v[j]
-	if (oldRnk/this.N < this.probs[idx-1]) return this._left(idx-1, oldMax, oldRnk)
+	vs[idx] = val
 }
 /**
  * Quantile function, provide the value for a given probability

@@ -10,7 +10,8 @@
 - ~~[distribution fitting](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation)~~
 - ~~<https://en.wikipedia.org/wiki/Empirical_distribution_function>~~
 
-## [2.1.0] - 2017-02-05
+
+## [2.1.1] - 2017-02-05
 ### Changed
 - Changed interpolation to mid-point when splitting intervals
 - Code simplification

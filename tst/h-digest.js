@@ -1,17 +1,11 @@
-/* eslint no-console:0 */
 var c = require('cotest')
 var HD = require('../h-digest')
 
 c('general properties, methods and getters', function() {
 	var hd = HD([10,15,10])
-	console.log(hd.probs)
 	hd.push(4)
 	hd.push([5,3,6,2,7,1,8])
-	console.log(hd.values)
-	//console.log(hd.ranks)
 	hd.push([0])
-	console.log(hd.values)
-	//console.log(hd.ranks)
 	c('==', hd.min, 0)
 	c('==', hd.max, 8)//
 	c('==', hd.N, 9)
@@ -55,7 +49,6 @@ c('len = 5, compressed, sorted (all new max)', function() {
 c('len = 5, reverse sorted (all new min)', function() {
 	var hd = HD(5)
 	hd.push([8,7,6,5,4,3,2,1,0])
-	//console.log('maxima:', hd.values, 'ranks:', hd.ranks)
 	c('==', hd.ranks.length, 5)
 	c('==', hd.values.length, 5)
 	c('==', hd.quantile(0), 0)

@@ -128,10 +128,11 @@ function pushCompress(val, j) {
 		default:
 			for (i=j; i<rs.length; ++i) ++rs[i]
 			if (val === vs[j]) return
-			var rnk = rs[j] - (rs[j] - rs[j-1]) * (vs[j] - val) / (vs[j] - vs[j-1])
+			var mid = (vs[j]+vs[j-1])/2,
+					rnk = val > mid ? (rs[j]+rs[j-1]-1)/2 : (rs[j]+rs[j-1]+1)/2
 			var prb = rnk/this.N
-			if (prb > this.probs[j]) return this._right(j, val, rnk)
-			if (prb < this.probs[j-1]) return this._left(j-1, val, rnk)
+			if (prb > this.probs[j]) return this._right(j, mid, rnk)
+			if (prb < this.probs[j-1]) return this._left(j-1, mid, rnk)
 	}
 }
 /**

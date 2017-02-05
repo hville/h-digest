@@ -9,14 +9,22 @@
 ~~Removed, Changed, Deprecated, Added, Fixed, Security~~
 - ~~[distribution fitting](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation)~~
 
-## [2.0.1] - 2017-01-13
-### Changes
+## [2.1.0] - 2017-02-05
+### Changed
 - Tests for Bias and RMS errors
-- Simply code a little
+- Simplify code a little
+
+### Fixed
+- Error
+
+## [2.0.1] - 2017-01-13
+### Changed
+- Tests for Bias and RMS errors
+- Simplify code a little
 
 
 ## [2.0.0] - 2017-01-13
-### Changes
+### Changed
 - Input weights during initiation are padded with 0 and 1 to preserve min and max
 
 ### Fixed
@@ -24,7 +32,7 @@
 
 
 ## [1.1.0] - 2017-01-12
-### Changes
+### Changed
 - Widening of the max/min weight limits to reduce the number of interpolation
 
 ### Added

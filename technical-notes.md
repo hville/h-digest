@@ -1,13 +1,9 @@
 <!-- markdownlint-disable MD004 MD007 MD010 MD041	MD022 MD024	MD032 -->
-[TODO](https://en.wikipedia.org/wiki/Empirical_distribution_function)
 
 # Requirements
 
 * preserve maximas: `v[0] == min`, `v[N] == max`
 * constant cummulative weighting for fast lookups: `weights == [0..1]`
-
-# Fundamentals
-
 * CDF: `p = cdf(x) // prob(X <= x)`
 * InverseCDF: `x = quantile(p)`
 
@@ -19,7 +15,9 @@
 * `x ~= value(rank(x)) == value(p*N)`
 * `quantile(p) ~= value(p*N)`
 
-# Ideal Case : Single Pass Compression
+# Compression
+
+## Ideal Case : Single Pass Compression
 
 * values: `vs = [x1, x2, ...xN] //array of sorted values`
 * ranks: `rs = [1, 2, ...N] //array of ranks`
@@ -34,7 +32,7 @@ For example:
 The probabilities `0` and `1` ensure that the overall minimum and maximum are kept.
 The remaining values represent the maximum for a given interval and preserve original rank and values for the quantile calculation
 
-# Actual Case : Continuous Compression
+## Actual Case : Continuous Compression
 
 For infinite sampling (eg. weather instrument data stream) continuous compression is required for every single or batch of samples.
 This forces further approximations from the ideal single compression.
@@ -45,11 +43,8 @@ The possible operations are as follows
 * merge: Merge `x` in interval `j`: discard `x` and increment all `rs[j..N-1]`
 * right: replace the value `vs[j]` with `x` and rank `rs[j]` with `r`. Continue right as required with the old replaced values
 
-The choice between these 3 operations is based on matching the desired weighting function
+The choice between these 3 operations is based on matching the desired weighting function and splitting/merging intervals accordingly
 
-# Interpolating a new rank for a new values
-* `v0 < v < v1`; `r0 < r < r1`
-* `r = r0 + (r1-r0)(v-v0)/(v1-v0) + 1` or `r1 - (r1-r0)(v1-v) / (v1-v0)`
 
 # Weighting Function
 Any [0..1] => [0..1] Sigmoid to increase edge accuracy
@@ -63,7 +58,7 @@ Any [0..1] => [0..1] Sigmoid to increase edge accuracy
 * `K = x < 1/2 ? w/x : w/(1-x)`
 * `w = x < 1/2 ? Kx : K(1-x)` --> triangular
 
-## Weighting for Constant Errors relative to ends RMS
+# Weighting for Constant Errors relative to ends RMS
 * `K = sqrt( (w/x)^2 + (w/(1-x))^2 )` = `w/(x-x2) * sqrt( 1 - 2(x-x2) )`
 * `w = K(x-x2) / sqrt( 1 - 2(x-x2) )` --> center scaling
 * `(x-x2)(1+2(x-x2)) === x x2 -4x3 +2x4` is a very good approximation

@@ -1,6 +1,6 @@
 {
   "name": "h-digest",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "small minimal quantile and cdf estimator for multiple large data streams",
   "keywords": [
     "stats", "statistics", "distribution", "cdf", "empirical distribution function", "empirical cdf",

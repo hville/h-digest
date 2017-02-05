@@ -8,14 +8,16 @@
 ## [Unreleased]
 ~~Removed, Changed, Deprecated, Added, Fixed, Security~~
 - ~~[distribution fitting](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation)~~
+- ~~<https://en.wikipedia.org/wiki/Empirical_distribution_function>~~
 
 ## [2.1.0] - 2017-02-05
 ### Changed
-- Tests for Bias and RMS errors
-- Simplify code a little
+- Changed interpolation to mid-point when splitting intervals
+- Code simplification
 
 ### Fixed
-- Error
+- Error for exact value matches
+
 
 ## [2.0.1] - 2017-01-13
 ### Changed

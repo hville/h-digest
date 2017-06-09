@@ -10,6 +10,13 @@
 - ~~[distribution fitting](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation)~~
 - ~~<https://en.wikipedia.org/wiki/Empirical_distribution_function>~~
 
+## [2.2.0] - 2017-06-09
+### Changed
+- split code into ES2015 modules
+
+### Added
+- distribution files for browser, CJS and ES6
+
 
 ## [2.1.1] - 2017-02-05
 ### Changed

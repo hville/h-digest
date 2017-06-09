@@ -1,5 +1,5 @@
 var c = require('cotest')
-var HD = require('../h-digest')
+var HD = require('../')
 
 c('general properties, methods and getters', function() {
 	var hd = HD([10,15,10])

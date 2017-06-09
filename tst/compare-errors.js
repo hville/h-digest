@@ -1,7 +1,7 @@
 /* eslint no-console:0 */
 var quantile = require('sample-quantile')
 var tdigest = require('tdigest')
-var hdigest = require('../h-digest')
+var hdigest = require('../')
 
 
 var normz = require('random-z')
@@ -39,7 +39,7 @@ function getActuals(rnds) {
 }
 
 //console.profile('build')
-console.log('\n\n=== START ===')
+console.log('\n\n=== COMPARE ERRORS ===')
 Ns.forEach(function(N) {
 	Ms.forEach(function(M) {
 		var samples = createSamples(N),
@@ -69,7 +69,7 @@ Ns.forEach(function(N) {
 		})
 	})
 })
-console.log('\n\n=== END ===\n')
+
 
 Object.keys(ERR2).sort(function(a,b) {return ERR2[a]<ERR2[b]}).forEach(function(fName) {
 	console.log(

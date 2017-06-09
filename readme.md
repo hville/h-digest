@@ -9,8 +9,10 @@
 
 # Example
 
+Available in `cjs` (require), `es6` (import) or `browser` (script) formats
+
 ```javascript
-HD = require('hdigest')
+HD = require('hdigest') // or import HD from 'hdigest'
 
 var hd0 = HD(7), // limited to 7 retained samples
     hd1 = HD([5, 10, 40, 40, 10, 5]) // or with custom weighting

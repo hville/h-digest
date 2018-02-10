@@ -9,6 +9,7 @@
 ~~Removed, Changed, Deprecated, Added, Fixed, Security~~
 - ~~[distribution fitting](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation)~~
 - ~~<https://en.wikipedia.org/wiki/Empirical_distribution_function>~~
+- reverted back to CJS only
 
 ## [2.2.0] - 2017-06-09
 ### Changed

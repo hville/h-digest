@@ -20,11 +20,10 @@
   ],
   "author": "Hugo Villeneuve",
   "main": "./dist/index.js",
-  "module": "./module.js",
-  "browser": "./dist/browser.js",
   "private": false,
   "dependencies": {},
   "devDependencies": {
+    "@types/node": "^9.4.4",
     "array-shuffle": "^1.0.1",
     "benchmark": "^2.1.4",
     "cotest": "^2.1.1",
@@ -38,10 +37,7 @@
     "url": "https://github.com/hville/h-digest.git"
   },
   "scripts": {
-    "test": "npm run build:main & cotest ./tst",
-    "build:main": "rollup -o ./index.js -f cjs --banner \"/* hugov@runbox.com | https://github.com/hville/h-digest.git | license:MIT */\" ./module.js",
-    "build:browser": "rollup -o ./browser.js -f iife -n h-digest --banner \"/* hugov@runbox.com | https://github.com/hville/h-digest.git | license:MIT */\" ./module.js",
-    "build": "npm run build:main & npm run build:browser",
+    "test": "cotest ./tst",
     "prepublishOnly": "npm test & npm run build:browser"
   },
   "license": "MIT",

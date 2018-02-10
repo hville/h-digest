@@ -1,6 +1,8 @@
-import {upperBound} from './upperbound'
+var upperBound = require('./upperbound')
 
-export function Recorder(probs) {
+module.exports = Recorder
+
+function Recorder(probs) {
 	// properties
 	this.length = probs.length
 	this.probs = probs

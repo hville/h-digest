@@ -15,7 +15,7 @@
  * @param	{number} len number of retained values
  * @return {array} node weighting array [0..1]
  */
-export function createWeighting(len) {
+module.exports = function(len) {
 	var ps = Array(len)
 	for (var i=0; i<len; ++i) {
 		var p = i/(len-1)

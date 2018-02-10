@@ -1,5 +1,5 @@
 // binary search
-export function upperBound(arr, v) {
+module.exports = function(arr, v) {
 	var low = 0,
 			high = arr.length
 	while (low < high) {

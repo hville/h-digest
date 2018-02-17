@@ -19,18 +19,25 @@ var Recorder = require('./src/_match-ranks'),
  */
 module.exports = function(weighting) {
 	// a length number
-	if (!Array.isArray(weighting)) return new Recorder(createWeighting(weighting))
-	// a cdf
-	if (weighting.every(function(v,i,a) { return i ? (v >= a[i-1] && v <= 1) : v >= 0 })) {
-		return new Recorder(weighting)
-	}
-	// a pdf
-	if (weighting[0]) weighting.unshift(0) //to preserve minimum
-	if (weighting[weighting.length-1]) weighting.push(0) //to preserve maximum
+	return new Recorder(
+		!Array.isArray(weighting) ? createWeighting(weighting)
+		: isCDF(weighting) ? weighting
+		: makeCDF(weighting)
+	)
+}
+
+function isCDF(a) {
+	for (var i=1; i<a.length; ++i) if (a[i] < a[i-1]) return false
+	return (a[0] >=0 && a[i-1] <= 1)
+}
+
+function makeCDF(pdf) {
+	if (pdf[0]) pdf.unshift(0) //to preserve minimum
+	if (pdf[pdf.length-1]) pdf.push(0) //to preserve maximum
 
 	var sum = 0,
 			cdf = []
-	for (var i=0; i<weighting.length; ++i) sum += weighting[i]
-	for (var j=0; j<weighting.length; ++j) cdf[j] = weighting[j] / sum
-	return new Recorder(cdf)
+	for (var i=0; i<pdf.length; ++i) sum += pdf[i]
+	for (var j=0; j<pdf.length; ++j) cdf[j] = pdf[j] / sum
+	return cdf
 }

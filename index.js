@@ -1,4 +1,4 @@
-var Recorder = require('./src/_recorder'),
+var Recorder = require('./src/_match-ranks'),
 		createWeighting = require('./src/weighting')
 
 /**

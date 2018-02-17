@@ -1,8 +1,8 @@
 var upperBound = require('./upperbound')
 
-module.exports = Recorder
+module.exports = MatchRanks
 
-function Recorder(probs) {
+function MatchRanks(probs) {
 	// properties
 	this.length = probs.length
 	this.probs = probs
@@ -13,8 +13,8 @@ function Recorder(probs) {
 	this._pushMode = pushLossless
 }
 
-Recorder.prototype = {
-	constructor: Recorder,
+MatchRanks.prototype = {
+	constructor: MatchRanks,
 	percentile: quantile,
 	quantile: quantile,
 	get min() { return this.values[0] },
@@ -49,15 +49,14 @@ function pushLossless(val, j) {
 
 function pushCompress(val, j) {
 	var vs = this.values,
-			rs = this.ranks
-	var i
+			rs = this.ranks,
+			i = 0
 	++this.N
-
 	switch (j) {
 		case vs.length:
 			return this._left(j-1, val, this.N)
 		case 0:
-			for (i=0; i<rs.length; ++i) ++rs[i]
+			for (; i<rs.length; ++i) ++rs[i]
 			return this._right(0, val, 1)
 		default:
 			for (i=j; i<rs.length; ++i) ++rs[i]
@@ -123,9 +122,7 @@ function quantile(prob) {
 	if (Array.isArray(prob)) return prob.map(this.quantile, this)
 	var h = (this.N + 1) * prob,
 			j = upperBound(rs, h)
-	if (j < 1) return vs[0]
-	if (j === vs.length) return vs[vs.length-1]
-	var	h1 = rs[j],
-			h0 = rs[j-1]
-	return vs[j-1] + (vs[j] - vs[j-1]) * (h-h0) / (h1-h0)
+	return j < 1 ? vs[0]
+		: j === vs.length ? vs[vs.length-1]
+		: vs[j-1] + (vs[j] - vs[j-1]) * (h-rs[j-1]) / (rs[j]-rs[j-1])
 }

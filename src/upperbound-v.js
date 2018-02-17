@@ -1,4 +1,4 @@
-// binary search
+// binary search v[i] >= v
 module.exports = function(arr, v) {
 	var low = 0,
 			high = arr.length

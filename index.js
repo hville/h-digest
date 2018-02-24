@@ -14,7 +14,7 @@ var Recorder = require('./src/_match-ranks'),
  * If a cdf array is provided ([0..1]) it is used as-is
  * Any other array is interpreted as relative weights to be summed and scaled to [0..1]
  *
- * @param	{number|array} weighting - the compressed length or pdf[any] or cdf[0..1]
+ * @param	{number|Array<number>} weighting - the compressed length or pdf[any] or cdf[0..1]
  * @return {object} - new sample recorder
  */
 module.exports = function(weighting) {
@@ -28,7 +28,7 @@ module.exports = function(weighting) {
 
 function isCDF(a) {
 	for (var i=1; i<a.length; ++i) if (a[i] < a[i-1]) return false
-	return (a[0] >=0 && a[i-1] <= 1)
+	return (a[0] === 0 && a[i-1] === 1)
 }
 
 function makeCDF(pdf) {

@@ -15,12 +15,6 @@ HD = require('hdigest') // or import HD from 'hdigest'
 // recorder with 7 retained samples with build-in weighting
 var hd0 = HD(7)
 
-// custom target weighting of retained samples - pdf(i)
-var hd1 = HD([5, 10, 40, 40, 10, 5])
-
-// custom cummulative weighting of retained samples - cdf(i)
-var hd2 = HD([0, .1, .2, .5, .7, .9, 1])
-
 hd0.push(4)
 hd0.push([5,3,6,2,7,1,8])
 hd0.push(0)
@@ -41,14 +35,10 @@ console.log(hd0.quantile([0, 0.5, 1])) // [0, 4, 8]
 
 # Limitations
 
-* no other utility methods (pdf, cdf, mean, variance)
+* no other utility methods (use `npm lazy-stats` for mean and variance)
 * the remaining selected values do not preserve the mean of the inputs
 
-# Why
-
-This proof of concept originated from the need to produce live animated boxplots
-for a large quantity of variables during continuous Monte Carlo simulations
-(ie. continuously computing the minimum, median, maximum, interquartile range, etc. for many streams of data).
+# Background
 
 There is already a good implementation on npm ([tdigest](https://www.npmjs.com/package/tdigest))
 based on the [work of Dunning](https://github.com/tdunning/t-digest).
@@ -65,10 +55,23 @@ The above points are thought to yield the following benefits:
 * No need for tree compresion steps
 * Better handling of sorted data, discrete data and repeated identical values
 * Faster, smaller footprint for hundreds of instances to measure hundreads of instruments
+* No garbage collection required
 
 # API
 
-## Properties (all readonly. do not overwrite)
+## Creation
+
+Samples are retained depending on how close they are to the target CDF probability points to be retained.
+
+The main function has 3 different input types:
+* `{number} length`: length of the internal target CDF to be generated
+* `{Array<number>} CDF`: if strictly increasing from 0 to 1, the array will be used the target CDF
+* `{Array<number>} PDF`: if not a CDF, the array will be treated as a PDF to be summed and normalized into a CDF
+
+Note that to preserve the maxima, a PDF will be padded with 0s at both ends if not already the case. This will result in a recorder length that is greater than the input PDF
+
+
+## Properties
 * `.N` number: total samples received
 * `.length` number: number of retained samples
 * `.probs` array: internal sigmoid/cdf used for selecting retained samples

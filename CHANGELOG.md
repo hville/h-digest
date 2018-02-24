@@ -11,13 +11,12 @@
 - ~~<https://en.wikipedia.org/wiki/Empirical_distribution_function>~~
 
 ## [3.0.0] - 2018-02-24
-
 ### Changed
 - reverted to CJS modules only
-
 ### Fixed
 - minor simplifications
 - added more comments in code
+- improved documentation
 
 ## [2.2.0] - 2017-06-09
 ### Changed

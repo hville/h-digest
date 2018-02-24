@@ -28,7 +28,7 @@ function createSamples(N) {
 function createSamplers(M) {
 	return {
 		td1: new tdigest.TDigest(0.8, M, 1.1),
-		hd1: new hdigest(M)
+		hd1: hdigest(M)
 	}
 }
 function getActuals(rnds) {

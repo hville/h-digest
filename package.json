@@ -27,6 +27,7 @@
     "array-shuffle": "^1.0.1",
     "benchmark": "^2.1.4",
     "cotest": "^2.1.1",
+    "lazy-stats": "^2.0.1",
     "power-sums": "^1.1.0",
     "random-z": "^1.1.1",
     "sample-quantile": "^1.0.2",

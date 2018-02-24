@@ -70,7 +70,7 @@ Ns.forEach(function(N) {
 })
 
 
-Object.keys(ERR2).sort(function(a,b) {return ERR2[a]<ERR2[b]}).forEach(function(fName) {
+Object.keys(ERR2).sort(function(a,b) {return ERR2[a]-ERR2[b]}).forEach(function(fName) {
 	console.log(
 		fName,
 		'Bias:', BIAS[fName].toFixed(0), ///N

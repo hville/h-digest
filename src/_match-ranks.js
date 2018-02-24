@@ -8,7 +8,6 @@ function MatchRanks(probs) {
 	this.probs = probs
 	this.values = []
 	this.ranks = []
-	this.N = 0
 	// method
 	this._pushMode = pushLossless
 }
@@ -19,6 +18,7 @@ MatchRanks.prototype = {
 	quantile: quantile,
 	get min() { return this.values[0] },
 	get max() { return this.values[this.values.length - 1] },
+	get N() { return this.ranks[this.ranks.length-1] },
 	_right: right,
 	_left: left,
 	push: push
@@ -32,13 +32,14 @@ function push(val) {
 }
 
 function pushLossless(val, j) {
-	if (this.N === this.length) {
+	var vs = this.values,
+			rs = this.ranks,
+			M = rs.length
+	if (rs[M-1] === this.length) {
 		this._pushMode = pushCompress
 		return this._pushMode(val, j)
 	}
-	var vs = this.values,
-			rs = this.ranks
-	++this.N
+
 	for (var i=rs.length; i>j; --i) {
 		rs[i] = rs[i-1]+1
 		vs[i] = vs[i-1]
@@ -50,23 +51,21 @@ function pushLossless(val, j) {
 function pushCompress(val, j) {
 	var vs = this.values,
 			rs = this.ranks,
-			i = 0
-	++this.N
-	switch (j) {
-		case vs.length:
-			return this._left(j-1, val, this.N)
-		case 0:
-			for (; i<rs.length; ++i) ++rs[i]
-			return this._right(0, val, 1)
-		default:
-			for (i=j; i<rs.length; ++i) ++rs[i]
-			if (val === vs[j]) return
-			var mid = (vs[j]+vs[j-1])/2,
-					rnk = val > mid ? (rs[j]+rs[j-1]-1)/2 : (rs[j]+rs[j-1]+1)/2
-			var prb = rnk/this.N
-			if (prb > this.probs[j]) return this._right(j, mid, rnk)
-			if (prb < this.probs[j-1]) return this._left(j-1, mid, rnk)
-	}
+			M = rs.length
+	// increment ranks
+	for (var i=j; i<M; ++i) ++rs[i]
+	// preserve maximas: `v[0] == min`, `v[N] == max`
+	if (j === vs.length) return this._left(j-1, val, rs[M-1] + 1)
+	if (j === 0) return this._right(0, val, 1)
+	// simple merge for identical values
+	if (val === vs[j]) return
+	// remove, shift, insert
+	var mid = (vs[j]+vs[j-1])/2,
+			rnk = val > mid ? (rs[j]+rs[j-1]-1)/2 : (rs[j]+rs[j-1]+1)/2
+	var prb = rnk/rs[M-1]
+	if (prb > this.probs[j]) return this._right(j, mid, rnk)
+	if (prb < this.probs[j-1]) return this._left(j-1, mid, rnk)
+	//default: simple merge
 }
 
 /**
@@ -80,11 +79,12 @@ function pushCompress(val, j) {
 function right(idx, val, rnk) {
 	var rs = this.ranks,
 			vs = this.values,
+			M = rs.length,
 			end = idx
-	while (rs[end] > this.probs[end+1]*this.N) ++end
-	for (var i=end; i>idx; --i) {
-		rs[i] = rs[i-1]
-		vs[i] = vs[i-1]
+	while (rs[end] > this.probs[end+1]*rs[M-1]) ++end
+	while (end>idx) {
+		rs[end] = rs[end-1]
+		vs[end] = vs[--end]
 	}
 	rs[idx] = rnk
 	vs[idx] = val
@@ -101,11 +101,12 @@ function right(idx, val, rnk) {
 function left(idx, val, rnk) {
 	var rs = this.ranks,
 			vs = this.values,
+			M = rs.length,
 			end = idx
-	while (rs[end] < this.probs[end-1]*this.N) --end
-	for (var i=end; i<idx; ++i) {
-		rs[i] = rs[i+1]
-		vs[i] = vs[i+1]
+	while (rs[end] < this.probs[end-1]*rs[M-1]) --end
+	while (end < idx) {
+		rs[end] = rs[end+1]
+		vs[end] = vs[++end]
 	}
 	rs[idx] = rnk
 	vs[idx] = val
@@ -118,9 +119,10 @@ function left(idx, val, rnk) {
  */
 function quantile(prob) {
 	var vs = this.values,
-			rs = this.ranks
+			rs = this.ranks,
+			M = rs.length
 	if (Array.isArray(prob)) return prob.map(this.quantile, this)
-	var h = (this.N + 1) * prob,
+	var h = (rs[M-1] + 1) * prob,
 			j = upperBound(rs, h)
 	return j < 1 ? vs[0]
 		: j === vs.length ? vs[vs.length-1]

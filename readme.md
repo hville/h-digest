@@ -9,14 +9,17 @@
 
 # Example
 
-Available in `cjs` (require), `es6` (import) or `browser` (script) formats
-
 ```javascript
 HD = require('hdigest') // or import HD from 'hdigest'
 
-var hd0 = HD(7), // limited to 7 retained samples
-    hd1 = HD([5, 10, 40, 40, 10, 5]) // or with custom weighting
-    hd2 = HD([0, .1, .2, .5, .7, .9, 1]) // or with custom relative ranks
+// recorder with 7 retained samples with build-in weighting
+var hd0 = HD(7)
+
+// custom target weighting of retained samples - pdf(i)
+var hd1 = HD([5, 10, 40, 40, 10, 5])
+
+// custom cummulative weighting of retained samples - cdf(i)
+var hd2 = HD([0, .1, .2, .5, .7, .9, 1])
 
 hd0.push(4)
 hd0.push([5,3,6,2,7,1,8])
@@ -39,8 +42,6 @@ console.log(hd0.quantile([0, 0.5, 1])) // [0, 4, 8]
 # Limitations
 
 * no other utility methods (pdf, cdf, mean, variance)
-* currently no stops to prevent overwriting internal properties (all properties and methods are open)
-* works in node and the browser but requires a CJS module bundler for the browser (webpack, browserify, ...)
 * the remaining selected values do not preserve the mean of the inputs
 
 # Why
@@ -65,13 +66,11 @@ The above points are thought to yield the following benefits:
 * Better handling of sorted data, discrete data and repeated identical values
 * Faster, smaller footprint for hundreds of instances to measure hundreads of instruments
 
-More [details available here](technical-notes.md)
-
 # API
 
 ## Properties (all readonly. do not overwrite)
 * `.N` number: total samples received
-* `.length` number: constant size of the compressed samples (length of all internal arrays)
+* `.length` number: number of retained samples
 * `.probs` array: internal sigmoid/cdf used for selecting retained samples
 * `.values` array: selected retained sample values
 * `.ranks` array: interpolated ranks of retained samples

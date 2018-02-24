@@ -1,6 +1,6 @@
 {
   "name": "h-digest",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "description": "small minimal quantile and cdf estimator for multiple large data streams",
   "keywords": [
     "stats",
@@ -19,16 +19,13 @@
     "monte-carlo"
   ],
   "author": "Hugo Villeneuve",
-  "main": "./dist/index.js",
-  "private": false,
+  "main": "./index.js",
   "dependencies": {},
   "devDependencies": {
     "@types/node": "^9.4.4",
     "array-shuffle": "^1.0.1",
     "benchmark": "^2.1.4",
     "cotest": "^2.1.1",
-    "lazy-stats": "^2.0.1",
-    "power-sums": "^1.1.0",
     "random-z": "^1.1.1",
     "sample-quantile": "^1.0.2",
     "tdigest": "^0.1.1"
@@ -39,10 +36,7 @@
   },
   "scripts": {
     "test": "cotest ./tst",
-    "prepublishOnly": "npm test & npm run build:browser"
+    "prepublishOnly": "npm test"
   },
-  "license": "MIT",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  }
+  "license": "MIT"
 }

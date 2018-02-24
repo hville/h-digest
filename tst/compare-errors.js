@@ -3,7 +3,6 @@ var quantile = require('sample-quantile')
 var tdigest = require('tdigest')
 var hdigest = require('../')
 
-
 var normz = require('random-z')
 
 var Ns = [1000, 2000, 4000, 8000, 10000],

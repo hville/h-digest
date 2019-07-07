@@ -1,9 +1,14 @@
 {
   "name": "h-digest",
-  "version": "1.0.5",
+  "version": "3.1.0",
   "description": "small minimal quantile and cdf estimator for multiple large data streams",
   "keywords": [
-    "quantiles",
+    "stats",
+    "statistics",
+    "distribution",
+    "cdf",
+    "empirical distribution function",
+    "empirical cdf",
     "quantiles",
     "median",
     "quartile",
@@ -14,14 +19,13 @@
     "monte-carlo"
   ],
   "author": "Hugo Villeneuve",
-  "main": "./h-digest.js",
-  "private": false,
+  "main": "./index.js",
   "dependencies": {},
   "devDependencies": {
-    "random-z": "^1.0.0",
-    "array-shuffle": "^1.0.1",
-    "cotest": "^1.3.0",
-    "power-sums": "^1.1.0",
+    "@types/node": "^12.0.12",
+    "cotest": "^4.0.3",
+    "norm-dist": "^2.0.1",
+    "sample-quantile": "^2.0.0",
     "tdigest": "^0.1.1"
   },
   "repository": {
@@ -29,13 +33,8 @@
     "url": "https://github.com/hville/h-digest.git"
   },
   "scripts": {
-    "test": "node ./tst/h-digest",
-    "benchmark": "node ./tst/benchmark",
-    "prepublish": "npm test",
-    "min": "uglifyjs ./h-digest.js -c unsafe,drop_console --screw-ie8 --preamble //hugov@runbox.com -m --wrap miniQuant -o ./index.min.js"
+    "test": "cotest ./tst",
+    "prepublishOnly": "npm test"
   },
-  "license": "MIT",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  }
+  "license": "MIT"
 }

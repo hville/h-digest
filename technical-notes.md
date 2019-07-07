@@ -48,7 +48,9 @@ The choice between these 3 operations is based on matching the desired weighting
 
 # Interpolating a new rank for a new values
 * `v0 < v < v1`; `r0 < r < r1`
-* `r = r0 + (r1-r0)(v-v0)/(v1-v0) + 1` or `r1 - (r1-r0)(v1-v) / (v1-v0)`
+* preserve average: find `r` so the zone average is constant:
+  * before `(r1-r0)(v1+v0) + 2v`
+  * after `(r1-r)(v1+v) + (r-r0)(v+v0)`
 
 # Weighting Function
 Any [0..1] => [0..1] Sigmoid to increase edge accuracy
@@ -68,3 +70,8 @@ Any [0..1] => [0..1] Sigmoid to increase edge accuracy
 * `(x-x2)(1+2(x-x2))`is a very good approximation === x x2 -4x3 +2x4
   - parabola scaled with another inverse parabola
 * `CDF = (15x2 10x3 -30x4 12x5)/7`
+
+# Todo
+
+* ~~[distribution fitting](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation)~~
+* ~~<https://en.wikipedia.org/wiki/Empirical_distribution_function>~~

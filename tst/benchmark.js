@@ -1,14 +1,15 @@
 /* eslint no-console:0 */
-var tdigest = require('tdigest')
-var hdigest = require('../h-digest')
-
-var normz = require('random-z')
+var tdigest = require('tdigest'),
+		createWeights = require('../src/weighting'),
+		CDF = require('../src/_cdf'),
+		iZ = require('norm-dist/icdf')
 
 var N = 20000,
 		M = 27,
 		unif = mapRep(N, function() { return Math.random() * 100 }),
-		norm = mapRep(N, function() { return normz() * 100 }),
-		logp = mapRep(N, function() { return Math.exp(normz()+0.5) * 100 })
+		norm = mapRep(N, function() { return iZ(Math.random()) * 100 }),
+		logp = mapRep(N, function() { return Math.exp(iZ(Math.random())+0.5) * 100 }),
+		weights = createWeights(M)
 
 var samples = {
 	logp: logp,
@@ -23,14 +24,10 @@ var fcn = {
 		r[k] = new tdigest.TDigest(0.8, M, 1.1)
 		return r
 	}, {}),
-	hd1: Object.keys(samples).reduce(function(r, k){
-		r[k] = new hdigest(M)
+	cdf: Object.keys(samples).reduce(function(r, k){
+		r[k] = new CDF(weights)
 		return r
-	}, {}),
-	hd2: Object.keys(samples).reduce(function(r, k){
-		r[k] = new hdigest(2*M)
-		return r
-	}, {}),
+	}, {})
 }
 var percentages = [0.005, 0.02, .1, .25, .5, .75, .98, .995],
 		actuals = Object.keys(samples).reduce(function(r, k) {

@@ -8,7 +8,11 @@
 ## [Unreleased]
 ~~Removed, Changed, Deprecated, Added, Fixed, Security~~
 
-## [3.1.0] - 2018-02-24
+## [3.2.0] - 2019-07-12
+### Removed
+- `.length`
+
+## [3.1.0] - 2019-07
 ### Changed
 - interpolate rank to preserve average
 - `.ave` average approximation

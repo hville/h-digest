@@ -4,7 +4,6 @@ module.exports = CDF
 
 function CDF(probs) {
 	// properties
-	this.length = probs.length
 	this.probs = probs
 	this.values = []
 	this.ranks = []
@@ -43,12 +42,12 @@ function pushLossless(val, j) {
 	var vs = this.values,
 			rs = this.ranks,
 			M = rs.length
-	if (rs[M-1] === this.length) {
+	if (rs[M-1] === this.probs.length) {
 		this._pushMode = pushCompress
 		return this._pushMode(val, j)
 	}
 
-	for (var i=rs.length; i>j; --i) {
+	for (var i=M; i>j; --i) {
 		rs[i] = rs[i-1]+1
 		vs[i] = vs[i-1]
 	}
@@ -61,7 +60,7 @@ function pushCompress(val, j) {
 			rs = this.ranks,
 			M = rs.length
 	// preserve max: v[N] == max
-	if (j === vs.length) return this._left(j-1, val, rs[M-1] + 1)
+	if (j === M) return this._left(j-1, val, rs[M-1] + 1)
 	// increment ranks
 	for (var i=j; i<M; ++i) ++rs[i]
 	// preserve min: v[0] == min
@@ -89,12 +88,14 @@ function pushCompress(val, j) {
 function right(idx, val, rnk) {
 	var rs = this.ranks,
 			vs = this.values,
-			M = rs.length,
+			Mm = rs.length-1,
 			end = idx
-	while (rs[end] > this.probs[end+1]*rs[M-1]) ++end
+	while (rnk > this.probs[++end]*rs[Mm]);
+	--end
 	while (end>idx) {
-		rs[end] = rs[end-1]
-		vs[end] = vs[--end]
+		var top = end--
+		rs[top] = rs[end] //first time, adjust
+		vs[top] = vs[end]
 	}
 	rs[idx] = rnk
 	vs[idx] = val
@@ -111,12 +112,14 @@ function right(idx, val, rnk) {
 function left(idx, val, rnk) {
 	var rs = this.ranks,
 			vs = this.values,
-			M = rs.length,
+			Mm = rs.length-1,
 			end = idx
-	while (rs[end] < this.probs[end-1]*rs[M-1]) --end
+	while (rnk < this.probs[--end]*rs[Mm]);
+	++end
 	while (end < idx) {
-		rs[end] = rs[end+1]
-		vs[end] = vs[++end]
+		var low = end++
+		rs[low] = rs[end] //first time, adjust
+		vs[low] = vs[end]
 	}
 	rs[idx] = rnk
 	vs[idx] = val
@@ -135,6 +138,6 @@ function quantile(prob) {
 	var h = (rs[M-1] + 1) * prob,
 			j = upperBound(rs, h)
 	return j < 1 ? vs[0]
-		: j === vs.length ? vs[vs.length-1]
+		: j === M ? vs[M-1]
 		: vs[j-1] + (vs[j] - vs[j-1]) * (h-rs[j-1]) / (rs[j]-rs[j-1])
 }

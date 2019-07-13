@@ -70,10 +70,8 @@ The main function has 3 different input types:
 
 Note that to preserve the maxima, a PDF will be padded with 0s at both ends if not already the case. This will result in a recorder length that is greater than the input PDF
 
-
 ## Properties
 * `.N` number: total samples received
-* `.length` number: number of retained samples
 * `.probs` array: internal sigmoid/cdf used for selecting retained samples
 * `.values` array: selected retained sample values
 * `.ranks` array: interpolated ranks of retained samples

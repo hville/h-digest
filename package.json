@@ -1,6 +1,6 @@
 {
   "name": "h-digest",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "small minimal quantile and cdf estimator for multiple large data streams",
   "keywords": [
     "stats",

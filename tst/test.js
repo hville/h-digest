@@ -20,19 +20,13 @@ c('general properties, methods and getters', t => {
 c('len = 5, some identical values, non compressed', t => {
 	var hd = HD(5)
 	hd.push([1,2,3])
-	t('==', hd.ranks.length, 3)
-	t('==', hd.values.length, 3)
 	t('==', hd.quantile(0.5), 2)
 
 	hd.push(2)
-	t('==', hd.ranks.length, 4)
-	t('==', hd.values.length, 4)
 	t('==', hd.quantile(0), 1)
 	t('==', hd.quantile(0.5), 2)
 	t('==', hd.quantile(1), 3)
 	hd.push(2)
-	t('==', hd.ranks.length, 5)
-	t('==', hd.values.length, 5)
 	t('==', hd.quantile(0), 1)
 	t('==', hd.quantile(0.5), 2)
 	t('==', hd.quantile(1), 3)
@@ -41,8 +35,6 @@ c('len = 5, some identical values, non compressed', t => {
 c('len = 5, compressed, sorted (all new max)', t => {
 	var hd = HD(5)
 	hd.push([0,1,2,3,4,5,6,7,8])
-	t('==', hd.ranks.length, 5)
-	t('==', hd.values.length, 5)
 	t('==', hd.quantile(0), 0)
 	t('<=', Math.abs(hd.quantile(0.5)-4), 0.1)
 	t('==', hd.quantile(1), 8)

@@ -41,14 +41,14 @@ function push(val) {
 function pushLossless(val, j) {
 	var vs = this.values,
 			rs = this.ranks,
-			M = rs.length
-	if (rs[M-1] === this.probs.length) {
+			Mm = rs.length - 1
+	if (rs[Mm] === this.probs.length) {
 		this._pushMode = pushCompress
 		return this._pushMode(val, j)
 	}
 
-	for (var i=M; i>j; --i) {
-		rs[i] = rs[i-1]+1
+	for (var i=Mm+1; i>j; --i) {
+		rs[i] = i+1
 		vs[i] = vs[i-1]
 	}
 	rs[j] = j ? rs[j-1] + 1 : 1
@@ -89,8 +89,9 @@ function right(idx, val, rnk) {
 	var rs = this.ranks,
 			vs = this.values,
 			Mm = rs.length-1,
-			end = idx
-	while (rnk > this.probs[++end]*rs[Mm]);
+			end = idx,
+			prb = rnk/rs[Mm]
+	while (prb > this.probs[++end]);
 	--end
 	while (end>idx) {
 		var top = end--
@@ -113,8 +114,9 @@ function left(idx, val, rnk) {
 	var rs = this.ranks,
 			vs = this.values,
 			Mm = rs.length-1,
-			end = idx
-	while (rnk < this.probs[--end]*rs[Mm]);
+			end = idx,
+			prb = rnk/rs[Mm]
+	while (prb < this.probs[--end]);
 	++end
 	while (end < idx) {
 		var low = end++
@@ -136,8 +138,9 @@ function quantile(prob) {
 			M = rs.length
 	if (Array.isArray(prob)) return prob.map(this.quantile, this)
 	var h = (rs[M-1] + 1) * prob,
-			j = upperBound(rs, h)
-	return j < 1 ? vs[0]
+			j = upperBound(rs, h),
+			i = j - 1
+	return j === 0 ? vs[0]
 		: j === M ? vs[M-1]
-		: vs[j-1] + (vs[j] - vs[j-1]) * (h-rs[j-1]) / (rs[j]-rs[j-1])
+		: vs[i] + (vs[j] - vs[i]) * (h-rs[i]) / (rs[j]-rs[i])
 }

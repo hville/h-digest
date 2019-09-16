@@ -8,6 +8,11 @@
 ## [Unreleased]
 ~~Removed, Changed, Deprecated, Added, Fixed, Security~~
 
+## [3.3.0] - 2019-07-12
+### Changed
+- minor tweeks
+- reference to new [sample-distribution](https://www.npmjs.com/package/sample-distribution) project
+
 ## [3.2.0] - 2019-07-12
 ### Removed
 - `.length`

@@ -3,6 +3,8 @@
 
 *takes a large and continuous data stream and continuously only retain a reduced [empirical CDF](https://en.wikipedia.org/wiki/Empirical_distribution_function) approximation*
 
+*Moved on to [sample-distribution](https://www.npmjs.com/package/sample-distribution), about 10x more accurate and about just as fast*
+
 ***small, simple, no dependencies***
 
 • [Example](#example) • [Features](#features) • [Limitations](#limitations) • [Why](#why) • [API](#api) • [License](#license)
@@ -40,11 +42,7 @@ console.log(hd0.quantile([0, 0.5, 1])) // [0, 4, 8]
 
 # Background
 
-There is already a good implementation on npm ([tdigest](https://www.npmjs.com/package/tdigest))
-based on the [work of Dunning](https://github.com/tdunning/t-digest).
-But the algorithm is more appropriate for a large growing compressed set instead of a smaller fixed set (ie constant memory).
-
-This module makes a few significant changes to the algorithm:
+Based on the [work of Dunning](https://github.com/tdunning/t-digest) with significant changes to the algorithm:
 * Samples retained represent the maximum for a given rank (instead of value weighted centroid of fixed rank)
 * No value interpolation. Values are kept as-is, but ranks are interpolated.
 * Fixed length, every new value discards an old one
@@ -56,6 +54,11 @@ The above points are thought to yield the following benefits:
 * Better handling of sorted data, discrete data and repeated identical values
 * Faster, smaller footprint for hundreds of instances to measure hundreads of instruments
 * No garbage collection required
+
+# Related projects
+
+* [tdigest](https://www.npmjs.com/package/tdigest)) based on the [work of Dunning](https://github.com/tdunning/t-digest)
+* [sample-distribution](https://www.npmjs.com/package/sample-distribution), 5-10x faster and more accurate (by some measure) than the above
 
 # API
 
